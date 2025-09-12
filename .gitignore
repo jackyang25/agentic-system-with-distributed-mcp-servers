@@ -1,0 +1,4 @@
+.undodir/*
+*.env
+*.pyc
+.vscode/*

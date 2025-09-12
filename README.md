@@ -37,7 +37,7 @@ Each tool serves a **single, well-defined function**. Example draft tools:
 - `spend_classifier` – categorize expenses into buckets (housing, food, etc.)
 - `resource_lookup` – retrieve structured info on nonprofit/gov programs
 
-_(More tools will be added as agents are refined.)_
+### More tools will be added as agents are refined
 
 ---
 
