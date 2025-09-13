@@ -64,7 +64,12 @@ This repository is organized to support a modular **multi-agent workflow** (buil
 ```text
 .
 ├── README.md
+├── CONTRIBUTING.md
+├── creds.env
+├── .gitignore
 ├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
 ├── agents/
 │   └── agent_name/
 │       ├── __init__.py
@@ -76,7 +81,6 @@ This repository is organized to support a modular **multi-agent workflow** (buil
 ├── mcp_services/
 │   ├── __init__.py
 │   ├── client.py
-│   ├── Dockerfile
 │   └── servers/
 │       └── server_name/
 │           ├── __init__.py
