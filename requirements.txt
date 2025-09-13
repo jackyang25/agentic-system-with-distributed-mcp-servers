@@ -1,0 +1,4 @@
+fastmcp==2.12.2
+langchain-openai==0.3.33
+mcp==1.13.1
+python-dotenv==1.1.1

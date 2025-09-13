@@ -1,0 +1,27 @@
+networks:
+  mcp:
+
+services:
+  mcp_server_name:
+    build:
+      context: ./mcp_services/servers/server_name/
+      dockerfile: Dockerfile
+    container_name: mcp_server_name
+    hostname: mcp_server_name
+    networks:
+      - mcp
+    ports:
+      - 5050:5050
+
+  mcp_client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcp_client
+    hostname: mcp_client
+    networks:
+      - mcp
+    ports:
+      - 5051:5051
+    depends_on:
+      - mcp_server_name

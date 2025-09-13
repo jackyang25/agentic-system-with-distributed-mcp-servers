@@ -73,11 +73,15 @@ This repository is organized to support a modular **multi-agent workflow** (buil
 │       ├── prompts.py
 │       ├── router.py
 │       └── state.py
-├── mcp/
+├── mcp_services/
+│   ├── __init__.py
 │   ├── client.py
+│   ├── Dockerfile
 │   └── servers/
 │       └── server_name/
 │           ├── __init__.py
+│           └── Dockerfile
+│           └── requirements.txt
 │           └── server.py
 ├── tests/
 │   ├── __init__.py
