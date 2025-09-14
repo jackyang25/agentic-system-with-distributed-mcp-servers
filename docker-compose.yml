@@ -13,12 +13,12 @@ services:
     ports:
       - 5050:5050
 
-  mcp_client:
+  agent:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mcp_client
-    hostname: mcp_client
+    container_name: agent
+    hostname: agent
     networks:
       - mcp
     ports:

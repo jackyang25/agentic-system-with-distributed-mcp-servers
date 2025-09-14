@@ -16,12 +16,10 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # --- end toolchain ---
 
 # copy files
-COPY mcp_services/client.py .
-COPY creds.env .
-COPY requirements.txt .
+COPY . .
 
 # install deps
 RUN uv pip install --no-cache-dir -r requirements.txt --system
 
 ENTRYPOINT ["python3"]
-CMD ["client.py"]
+CMD ["main.py"]
