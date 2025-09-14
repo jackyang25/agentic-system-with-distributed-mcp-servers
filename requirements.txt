@@ -1,3 +1,5 @@
+pip
 fastmcp
-python-dotenv
+mcp[cli]
 pytest
+python-dotenv

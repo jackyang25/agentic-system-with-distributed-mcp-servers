@@ -7,8 +7,7 @@ help:
 	@echo "  make clean    - Clean up files"
 
 install:
-	python3 -m pip install -r requirements.txt
-	npm install -g @supabase/mcp-server-supabase
+	pip install -r requirements.txt
 
 test:
 	./scripts/run-tests.sh

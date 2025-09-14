@@ -1,6 +1,6 @@
-# MCP Server Setup
+# Civic Assistant Team 5
 
-Simple Supabase MCP server with tests and Docker.
+Simple MCP client setup for connecting to Supabase database.
 
 ## Quick Start
 
@@ -10,37 +10,38 @@ Simple Supabase MCP server with tests and Docker.
    ```
 
 2. **Set up environment:**
+   - You already have a `.env` file with your Supabase credentials
+   - Contains: `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF`
+
+3. **Test MCP connection:**
    ```bash
-   cp docker.env.example .env
-   # Edit .env with your Supabase credentials
+   python mcp_servers/supabase_mcp/client.py
    ```
 
-3. **Run tests:**
+4. **Start main application:**
    ```bash
-   make test
-   ```
-
-4. **Start MCP server:**
-   ```bash
-   ./scripts/start-supabase-mcp-server.sh
-   ```
-
-5. **Or use Docker:**
-   ```bash
-   docker-compose up
+   python main.py
    ```
 
 ## What This Provides
 
-MCP server gives agents access to:
+**MCP Client** connects to Supabase and provides access to:
 - Database queries (`execute_sql`, `list_tables`)
-- Project management (`get_project`, `list_projects`)
-- Storage management (`list_storage_buckets`)
+- Documentation search (`search_docs`)
+- Project management (`get_project_url`, `get_anon_key`)
+- Edge functions (`list_edge_functions`, `deploy_edge_function`)
+- Database branching (`create_branch`, `merge_branch`)
 
-## Agent Usage
+## How It Works
 
-```python
-import mcp
-client = mcp.Client("http://localhost:3001")
-data = client.call("execute_sql", query="SELECT * FROM properties")
-```
+1. **MCP Client** (`client.py`) connects to Supabase MCP server via npx
+2. **Uses your .env credentials** to authenticate
+3. **No global installs needed** - npx handles downloads automatically
+4. **20+ tools available** for database and project management
+
+## Files Structure
+
+- `main.py` - Main application entry point
+- `mcp_servers/supabase_mcp/client.py` - MCP connection test
+- `.env` - Your Supabase credentials (already configured)
+- `requirements.txt` - Python dependencies
