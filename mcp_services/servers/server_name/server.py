@@ -161,4 +161,5 @@ def get_server_capabilities() -> dict:
     }
 
 
-math_mcp.run(transport="streamable-http", host="0.0.0.0", port=5050)
+if __name__ == "__main__":
+    math_mcp.run(transport="streamable-http", host="0.0.0.0", port=5050)
