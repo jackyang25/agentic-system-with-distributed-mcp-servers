@@ -17,9 +17,9 @@ class TestDatabaseConnection:
     @pytest.fixture(autouse=True)
     def setup(self):
         """Load environment variables before each test"""
-        load_dotenv('config/database.env')
+        load_dotenv('.env')
         self.db_url = os.getenv("DATABASE_URL")
-        assert self.db_url, "DATABASE_URL not found in config/database.env"
+        assert self.db_url, "DATABASE_URL not found in .env"
     
     def test_database_connection(self):
         """Test basic database connection"""
@@ -134,7 +134,7 @@ class TestMCPServer:
     
     def test_mcp_server_environment_variables(self):
         """Test that required environment variables are set"""
-        load_dotenv('config/database.env')
+        load_dotenv('.env')
         
         token = os.getenv("SUPABASE_ACCESS_TOKEN")
         project_ref = os.getenv("SUPABASE_PROJECT_REF")
@@ -183,7 +183,7 @@ class TestDataAccess:
     @pytest.fixture(autouse=True)
     def setup(self):
         """Load environment variables before each test"""
-        load_dotenv('config/database.env')
+        load_dotenv('.env')
         self.db_url = os.getenv("DATABASE_URL")
     
     def test_borough_query(self):

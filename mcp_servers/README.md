@@ -8,7 +8,7 @@ npm install -g @supabase/mcp-server-supabase
 ```
 
 ### 2. Set Up Environment
-1. Copy `config/database.env.example` to `config/database.env`
+1. Copy `docker.env.example` to `.env`
 2. Update with your Supabase credentials:
    - Get your Personal Access Token from [Supabase Dashboard](https://supabase.com/dashboard/account/tokens)
    - Replace `your_personal_access_token_here` with your actual token
@@ -42,7 +42,7 @@ python3 -m pytest ../tests/test_mcp_setup.py -v
 
 ## Troubleshooting
 
-- Make sure `config/database.env` exists and has valid credentials
+- Make sure `.env` exists and has valid credentials
 - Ensure Node.js is installed (`node -v`)
 - Check that the MCP server is running before connecting AI agents
 - Run tests to diagnose issues: `../scripts/run-tests.sh`

@@ -11,8 +11,8 @@ Simple Supabase MCP server with tests and Docker.
 
 2. **Set up environment:**
    ```bash
-   cp config/database.env.example config/database.env
-   # Edit config/database.env with your Supabase credentials
+   cp docker.env.example .env
+   # Edit .env with your Supabase credentials
    ```
 
 3. **Run tests:**
