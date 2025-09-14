@@ -7,12 +7,13 @@ _Educational multi-agent assistant built with LangGraph and MCP._
 
 ## Architecture Overview
 
-This project follows a **modular multi-agent architecture**.
+This project follows a **containerized multi-agent architecture**.
 
-- **One agent = one task**
-- **One tool (MCP) = one function**
+- **One agent = one container** (LangGraph workflow)
+- **One MCP server = one container** (tool provider)
 - Agents communicate through **A2A structured messages**
-- Workflow is orchestrated with **LangGraph**
+- Tools are invoked through **MCP (Model Context Protocol)**
+- Deployment is orchestrated via **Docker Compose**
 
 ---
 
@@ -31,19 +32,15 @@ Each agent has a clear role and limited scope:
 
 ## MCP Tools (Planned)
 
-Each tool serves a **single, well-defined function**. Example draft tools:
+Each tool is hosted in its **own containerized MCP server**.
 
 - `apr_calc` – compute payoff timelines given balance, APR, and payments
 - `spend_classifier` – categorize expenses into buckets (housing, food, etc.)
 - `resource_lookup` – retrieve structured info on nonprofit/gov programs
 
-### More tools will be added as agents are refined
-
 ---
 
 ## LangGraph Workflow
-
-**Workflow Skeleton (to be updated as design evolves):**
 
 ```mermaid
 flowchart TD
@@ -59,7 +56,7 @@ flowchart TD
 
 ## Repository Structure
 
-This repository is organized to support a modular **multi-agent workflow** (built with LangGraph) and **tool integration** via MCP servers.
+This repository is organized to support **containerized agents** and **MCP servers**.
 
 ```text
 .
@@ -68,9 +65,14 @@ This repository is organized to support a modular **multi-agent workflow** (buil
 ├── creds.env
 ├── .gitignore
 ├── requirements.txt
-├── Dockerfile
 ├── docker-compose.yml
-├── agents/
+├── pyproject.toml
+├── poetry.lock
+│
+├── main.py                  # Entrypoint for agent container
+├── Dockerfile               # Agent container build
+│
+├── agents/                  # LangGraph agent implementations
 │   └── agent_name/
 │       ├── __init__.py
 │       ├── graph.py
@@ -78,66 +80,43 @@ This repository is organized to support a modular **multi-agent workflow** (buil
 │       ├── prompts.py
 │       ├── router.py
 │       └── state.py
-├── mcp_services/
-│   ├── __init__.py
-│   ├── client.py
+│
+├── mcp_services/            # One subdir = one MCP server container
+│   ├── client.py            # MCP client for agent
 │   └── servers/
 │       └── server_name/
 │           ├── __init__.py
-│           └── Dockerfile
+│           ├── server.py    # MCP tool definitions
+│           ├── Dockerfile   # Container spec for this MCP server
 │           └── requirements.txt
-│           └── server.py
-├── tests/
+│
+├── tests/                   # Pytest-based testing
 │   ├── __init__.py
 │   ├── conftest.py
+│   ├── test_mcp_client.py
+│   ├── test_mcp_server.py
 │   └── fixtures/
-└── utilities/
+│
+└── utilities/               # Shared helper code
     ├── __init__.py
     └── helpers.py
 ```
 
-### Top-Level Files
+---
 
-- **`README.md`** – Project overview, setup instructions, and documentation.
-- **`requirements.txt`** – Python dependencies required for running the project.
+## Container Deployment
 
-### Agents (`/agents/`)
-
-Each subdirectory represents an **AI agent** with its own workflow logic.
-
-- **`graph.py`** – Defines the LangGraph state machine for the agent.
-- **`nodes.py`** – Implements the functional nodes that process state transitions.
-- **`prompts.py`** – Centralized storage of LLM prompt templates.
-- **`router.py`** – Logic for dynamically routing the conversation flow within the agent.
-- **`state.py`** – Defines the schema and data model for the agent’s workflow state.
-
-> Agents communicate with each other using **A2A (Agent-to-Agent) messaging**.
-
-### MCP (`/mcp/`)
-
-Implements **Model Context Protocol (MCP)** clients and servers for tool integration.
-
-- **`client.py`** – Client for invoking MCP tools inside workflows.
-- **`servers/`** – Each subdirectory hosts an MCP tool server.
-  - **`server.py`** – Tool definitions and execution logic for that server.
-
-### Tests (`/tests/`)
-
-Testing infrastructure to validate correctness and safety.
-
-- **`conftest.py`** – Pytest configuration and fixtures.
-- **`fixtures/`** – Predefined input/output scenarios for reproducible tests.
-
-### Utilities (`/utilities/`)
-
-Shared helper code used across agents and orchestration.
-
-- **`helpers.py`** – Utility functions (e.g., logging wrappers, validation, formatting).
+- **Agent container**: runs `main.py`, orchestrates LangGraph workflow
+- **MCP containers**: each server has its own `Dockerfile` and can be scaled independently
+- **docker-compose.yml**: coordinates networking between agent and MCP servers
 
 ---
 
-## This structure ensures that:
+## Development Principles
 
-- Agents remain **modular** and **composable**.
-- Tools are **decoupled** via MCP servers.
-- Tests and utilities are **centralized** for reuse and consistency.
+- Agents remain **modular** and **composable**
+- MCP servers are **decoupled** and independently deployable
+- Tests ensure **safety and reproducibility**
+- Docker enables **consistent local + production environments**
+
+---
