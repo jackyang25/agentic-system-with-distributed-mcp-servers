@@ -1,0 +1,37 @@
+---
+name: Agent Test Workflow
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  test:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout code"
+        id: "checkout_code"
+        uses: "actions/checkout@v4"
+
+      - name: "Install Poetry"
+        id: "install_poetry"
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: "Setup Python"
+        id: "setup_python"
+        uses: "actions/setup-python@v5"
+        with:
+          python-version: "3.13"
+          cache: "poetry"
+          cache-dependency-path: "./poetry.lock"
+
+      - name: "Poetry dependencies install"
+        id: "poetry_dependencies_install"
+        run: "poetry install --no-root"
+
+      - name: "Test MCP Server"
+        id: "test_mcp_server"
+        run: "poetry run pytest tests/test_mcp_server.py"
