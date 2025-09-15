@@ -17,7 +17,7 @@ This project follows a **containerized multi-agent architecture**.
 
 ---
 
-## Agents (Planned)
+## Agents Planned
 
 Each agent has a clear role and limited scope:
 
