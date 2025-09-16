@@ -1,122 +1,113 @@
-# Civic AI: Debt & Budget Assistant
+# Homebuyer MVP: Core Flow
 
-_Educational multi-agent assistant built with LangGraph and MCP._  
+_Multi-agent homebuyer assistance system with financial analysis and neighborhood matching._  
 ⚠️ **Disclaimer: This project is for educational purposes only. It does not provide financial advice.**
 
 ---
 
 ## Architecture Overview
 
-This project follows a **containerized multi-agent architecture**.
+This project follows a **multi-agent pipeline architecture**.
 
-- **One agent = one container** (LangGraph workflow)
-- **One MCP server = one container** (tool provider)
-- Agents communicate through **A2A structured messages**
-- Tools are invoked through **MCP (Model Context Protocol)**
-- Deployment is orchestrated via **Docker Compose**
-
----
-
-## Agents Planned
-
-Each agent has a clear role and limited scope:
-
-- **Intake Agent** – gathers initial user input and context
-- **Budget Analyzer** – classifies income/expenses, computes savings rates
-- **Debt Strategist** – compares payoff strategies (e.g., snowball vs avalanche)
-- **Resource Finder** – looks up nonprofit, government, or housing programs
-- **Action Planner** – generates neutral scripts/plans (e.g., creditor calls)
-- **Safety Gate** – enforces disclaimers, checks outputs for compliance
+- **Three specialized agents** working sequentially
+- **Human-in-the-loop (HITL)** confirmation at critical decision points
+- **JSON-structured outputs** for each agent stage
+- **Caching strategy** for performance optimization
+- **Neighborhood-focused MVP** (listings integration in future phases)
 
 ---
 
-## MCP Tools (Planned)
+## Agent Pipeline
 
-Each tool is hosted in its **own containerized MCP server**.
+Each agent has a clear role and defined scope:
 
-- `apr_calc` – compute payoff timelines given balance, APR, and payments
-- `spend_classifier` – categorize expenses into buckets (housing, food, etc.)
-- `resource_lookup` – retrieve structured info on nonprofit/gov programs
+- **Finance Agent** – computes housing affordability and payment breakdown
+- **Geo-Scout Agent** – finds neighborhoods within budget, evaluates quality of life
+- **Program Matcher Agent** – identifies eligible assistance programs and loans
+- **Synthesizer LLM** – combines outputs into actionable recommendations
 
 ---
 
-## LangGraph Workflow
+## Core Workflow
 
 ```mermaid
 flowchart TD
-  A[Intake] --> B[Budget Analyzer]
-  B --> C[Debt Strategist]
-  C --> D[Resource Finder]
-  D --> E[Action Planner]
-  E --> F[Safety Gate]
-  F --> G{End}
+  A[User Input] --> B[Finance Agent]
+  B --> C[Geo-Scout Agent]
+  C --> D[Program Matcher Agent]
+  D --> E[Orchestrator]
+  E --> F[Final Report]
+  
+  B -.-> G[HITL: Priorities]
+  G --> C
+  D -.-> H[HITL: Eligibility]
+  H --> E
 ```
+
+---
+
+## Agent Specifications
+
+### Finance Agent
+**Input:** Income, debt, credit score, savings, expenses  
+**Output:** `{max_home_price, monthly_payment, readiness_score}`  
+**Rule:** Housing cost ≤ 30% of gross income  
+**Cache:** Profiles by (income, debt, savings, credit score)
+
+### Geo-Scout Agent  
+**Input:** Budget from Finance Agent, target city, user priorities (HITL)  
+**Output:** `[{zip, median_home_value, school_rating, transit_score, safety_index}]`  
+**Rule:** All median home values ≤ Finance Agent's max  
+**Cache:** Median home values per ZIP  
+
+### Program Matcher Agent
+**Input:** Location, income vs AMI, buyer status  
+**Output:** `[{name, eligibility, benefit}]`  
+**Rule:** Must match profile, no hallucinated programs  
+**Cache:** Programs by AMI bracket + state  
+**HITL:** User confirms eligibility before recommendations
 
 ---
 
 ## Repository Structure
 
-This repository is organized to support **containerized agents** and **MCP servers**.
-
-```text
-.
-├── README.md
-├── CONTRIBUTING.md
-├── creds.env
-├── .gitignore
-├── requirements.txt
-├── docker-compose.yml
-├── pyproject.toml
-├── poetry.lock
-│
-├── main.py                  # Entrypoint for agent container
-├── Dockerfile               # Agent container build
-│
-├── agents/                  # LangGraph agent implementations
-│   └── agent_name/
-│       ├── __init__.py
-│       ├── graph.py
-│       ├── nodes.py
-│       ├── prompts.py
-│       ├── router.py
-│       └── state.py
-│
-├── mcp_services/            # One subdir = one MCP server container
-│   ├── client.py            # MCP client for agent
-│   └── servers/
-│       └── server_name/
-│           ├── __init__.py
-│           ├── server.py    # MCP tool definitions
-│           ├── Dockerfile   # Container spec for this MCP server
-│           └── requirements.txt
-│
-├── tests/                   # Pytest-based testing
-│   ├── __init__.py
-│   ├── conftest.py
-│   ├── test_mcp_client.py
-│   ├── test_mcp_server.py
-│   └── fixtures/
-│
-└── utilities/               # Shared helper code
-    ├── __init__.py
-    └── helpers.py
-```
+CONTRIBUTING.md         docker-compose.yml      mcp_services            pyproject.toml          tests                   agents
+Dockerfile              main.py                 poetry.lock             requirements.txt        utilities               README.md
 
 ---
 
-## Container Deployment
+## Configuration
 
-- **Agent container**: runs `main.py`, orchestrates LangGraph workflow
-- **MCP containers**: each server has its own `Dockerfile` and can be scaled independently
-- **docker-compose.yml**: coordinates networking between agent and MCP servers
+```python
+# Credit score ranges (deterministic)
+CREDIT_RANGES = {
+    "exceptional": range(800,850)
+    "very good": range(740,799),
+    "good": range(670,739), 
+    "fair": range(580,669),
+    "poor": range(300,579)
+}
+
+# Financial rules
+MAX_HOUSING_RATIO = 0.30  # 30% of gross income
+MIN_READINESS_SCORE = 0.6
+```
 
 ---
 
 ## Development Principles
 
-- Agents remain **modular** and **composable**
-- MCP servers are **decoupled** and independently deployable
-- Tests ensure **safety and reproducibility**
-- Docker enables **consistent local + production environments**
+- **Sequential agent processing** with clear handoffs
+- **HITL strategically placed** for user engagement and accuracy
+- **Deterministic calculations** where possible (credit scores, ratios)
+- **Comprehensive caching** for performance
+- **Validation checks** prevent hallucinated or mismatched outputs
 
 ---
+
+## Future Phases
+
+- [ ] Direct listing integration (Redfin/Zillow APIs)
+- [ ] "Ready to buy" vs "browsing" user workflows
+- [ ] Real-time program eligibility updates
+- [ ] Enhanced neighborhood scoring algorithms
