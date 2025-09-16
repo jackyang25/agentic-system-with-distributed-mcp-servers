@@ -1,48 +1,50 @@
-# Supabase MCP Server
+# MCP Servers
 
-## Quick Start
+This directory contains MCP (Model Context Protocol) server configurations for MAREA.
 
-### 1. Install Dependencies
-```bash
-npm install -g @supabase/mcp-server-supabase
+## Structure
+
+```
+mcp_servers/
+├── README.md          # This file
+├── Dockerfile         # Supabase MCP server container
+└── supabase/
+    └── client.py      # Supabase MCP client wrapper
 ```
 
-### 2. Set Up Environment
-1. Copy `docker.env.example` to `.env`
-2. Update with your Supabase credentials:
-   - Get your Personal Access Token from [Supabase Dashboard](https://supabase.com/dashboard/account/tokens)
-   - Replace `your_personal_access_token_here` with your actual token
+## Supabase MCP Server
 
-### 3. Start the MCP Server
-```bash
-../scripts/start-supabase-mcp-server.sh
+The Supabase MCP server provides database access through the MCP protocol.
+
+### Configuration
+- **Container**: `supabase-mcp-server`
+- **Base Image**: `node:20`
+- **Package**: `@supabase/mcp-server-supabase@latest`
+
+### Environment Variables
+- `SUPABASE_PROJECT_REF`: Your Supabase project reference
+- `SUPABASE_ACCESS_TOKEN`: Your Supabase access token
+
+### Available Tools
+- `execute_sql` - Execute SQL queries
+- `list_tables` - List database tables
+- `search_docs` - Search documentation
+- `get_project_url` - Get project URL
+- And 15+ more tools for database management
+
+### Usage
+The MCP server runs in a separate container and communicates with MAREA via Docker exec and stdin/stdout pipes.
+
+```python
+from mcp_servers.supabase.client import SupabaseClient
+
+client = SupabaseClient("supabase-mcp-server")
+await client.connect()
+tools = await client.get_tools()
+result = await client.query_properties(1)
 ```
 
-The server will start and wait for AI agent connections.
-
-## What This Provides
-
-The Supabase MCP Server provides access to:
-- Database queries (`execute_sql`, `list_tables`)
-- Project management (`get_project`, `list_projects`)
-- Edge Functions (`list_edge_functions`, `deploy_edge_function`)
-- Storage management (`list_storage_buckets`)
-
-## Testing
-
-Run tests to verify everything is working:
-
-```bash
-# Run all tests
-../scripts/run-tests.sh
-
-# Or run tests directly
-python3 -m pytest ../tests/test_mcp_setup.py -v
+### Communication Flow
 ```
-
-## Troubleshooting
-
-- Make sure `.env` exists and has valid credentials
-- Ensure Node.js is installed (`node -v`)
-- Check that the MCP server is running before connecting AI agents
-- Run tests to diagnose issues: `../scripts/run-tests.sh`
+MAREA Container → Docker Socket → Supabase MCP Container → Supabase API
+```
