@@ -1,1 +1,1 @@
-"""Prompts for the agent_name workflow."""
+"""Prompts for the Program Agent workflow."""

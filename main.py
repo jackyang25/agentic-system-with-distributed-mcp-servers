@@ -37,12 +37,14 @@ if not os.environ["LANGSMITH_API_KEY"]:
     print(" LANGSMITH_API_KEY not set. Traces will not be uploaded.")
 
 os.environ["LANGSMITH_TRACING"] = os.getenv("LANGSMITH_TRACING", "true")
-os.environ["LANGSMITH_PROJECT"] = os.getenv("LANGSMITH_PROJECT", "civic-assistant-team-5")
+os.environ["LANGSMITH_PROJECT"] = os.getenv(
+    "LANGSMITH_PROJECT", "civic-assistant-team-5"
+)
 
 print("✅ LangSmith monitoring enabled:", os.environ["LANGSMITH_PROJECT"])
 
 # Import AFTER env setup to ensure LangSmith tracing applies globally
-from mcp_services.client import get_mcp_data
+from mcp_servers.servers.server_name.client import get_mcp_data
 
 
 async def main():

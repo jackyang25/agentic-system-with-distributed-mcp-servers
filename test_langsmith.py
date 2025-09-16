@@ -1,13 +1,16 @@
 import os
-from langchain_openai import ChatOpenAI
+
 from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
 
 load_dotenv(".env")
 os.environ["OPENAI_API_KEY"] = os.getenv(key="OPENAI_API_KEY")
 
 # Force LangSmith tracing (in case not loaded from .env)
 os.environ["LANGSMITH_TRACING"] = os.getenv("LANGSMITH_TRACING", "true")
-os.environ["LANGSMITH_PROJECT"] = os.getenv("LANGSMITH_PROJECT", "civic-assistant-team-5")
+os.environ["LANGSMITH_PROJECT"] = os.getenv(
+    "LANGSMITH_PROJECT", "civic-assistant-team-5"
+)
 
 # Initialize LLM
 llm = ChatOpenAI(model="gpt-4o-mini")

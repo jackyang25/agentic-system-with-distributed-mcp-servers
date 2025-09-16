@@ -6,7 +6,7 @@ networks:
 services:
   mcp_server_name:
     build:
-      context: ./mcp_services/servers/server_name/
+      context: ./mcp_servers/servers/server_name/
       dockerfile: Dockerfile
     container_name: mcp_server_name
     hostname: mcp_server_name

@@ -12,6 +12,6 @@ def anyio_backend():
 
 
 def load_environment_variables() -> None:
-    """Load environment variables from creds.env file."""
-    creds_path: Path = Path(__file__).parent.parent.joinpath("creds.env")
+    """Load environment variables from .env file."""
+    creds_path: Path = Path(__file__).parent.parent.joinpath(".env")
     load_dotenv(dotenv_path=creds_path)

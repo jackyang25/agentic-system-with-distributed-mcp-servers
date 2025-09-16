@@ -1,1 +1,1 @@
-"""Prompts for the agent_name workflow."""
+"""Prompts for the GeoScout agent workflow."""
