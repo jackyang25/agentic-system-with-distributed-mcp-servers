@@ -2,7 +2,6 @@
 
 import asyncio
 import os
-
 from dotenv import load_dotenv
 from fastmcp import Client
 

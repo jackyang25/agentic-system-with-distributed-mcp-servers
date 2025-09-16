@@ -182,3 +182,14 @@ MAREA (Multi-Agent Real Estate Assistant) is designed specifically for first-tim
 ```
 
 ---
+
+# Langsmith integration
+Successfully integrated LangSmith monitoring into the MCP Agent.
+Environment variables (LANGSMITH_API_KEY, LANGSMITH_TRACING, LANGSMITH_PROJECT) are loaded via creds.env and passed to the agent in Docker.
+Verified end-to-end tracing by running a test prompt (Hello, are you connected to LangSmith?) and confirming the run appears in the LangSmith dashboard under project civic-assistant-team-5.
+Traces show inputs, outputs, token usage, latency, and model metadata.
+This enables full observability of LLM calls for debugging, optimization, and cost tracking.
+Next Steps:
+Add more detailed traces for MCP client-server interactions (e.g., get_mcp_data() calls).
+Configure dashboards/alerts in LangSmith if required by the team.
+
