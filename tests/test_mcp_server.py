@@ -2,7 +2,7 @@
 
 from typing import Callable
 
-from mcp_services.servers.server_name import server as server_name
+from mcp_servers.servers.server_name import server as server_name
 
 
 class TestMCPServerName:
