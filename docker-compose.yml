@@ -1,3 +1,5 @@
+version: "3.9"
+
 networks:
   mcp:
 
@@ -11,7 +13,7 @@ services:
     networks:
       - mcp
     ports:
-      - 5050:5050
+      - "5050:5050"
 
   agent:
     build:
@@ -22,6 +24,12 @@ services:
     networks:
       - mcp
     ports:
-      - 5051:5051
+      - "5051:5051"
     depends_on:
       - mcp_server_name
+    environment:
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+      - LANGSMITH_TRACING=${LANGSMITH_TRACING}
+      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT}
+      - MCP_SERVER_NAME_NAME=${MCP_SERVER_NAME_NAME}
+      - MCP_SERVER_NAME_PORT=${MCP_SERVER_NAME_PORT}
