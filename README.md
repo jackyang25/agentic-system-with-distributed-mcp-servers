@@ -71,8 +71,102 @@ flowchart TD
 
 ## Repository Structure
 
+<<<<<<< Updated upstream
 CONTRIBUTING.md         docker-compose.yml      mcp_services            pyproject.toml          tests                   agents
 Dockerfile              main.py                 poetry.lock             requirements.txt        utilities               README.md
+||||||| Stash base
+This repository is organized to support **containerized agents** and **MCP servers**.
+
+```text
+.
+├── README.md
+├── CONTRIBUTING.md
+├── creds.env
+├── .gitignore
+├── requirements.txt
+├── docker-compose.yml
+├── pyproject.toml
+├── poetry.lock
+│
+├── main.py                  # Entrypoint for agent container
+├── Dockerfile               # Agent container build
+│
+├── agents/                  # LangGraph agent implementations
+│   └── agent_name/
+│       ├── __init__.py
+│       ├── graph.py
+│       ├── nodes.py
+│       ├── prompts.py
+│       ├── router.py
+│       └── state.py
+│
+├── mcp_services/            # One subdir = one MCP server container
+│   ├── client.py            # MCP client for agent
+│   └── servers/
+│       └── server_name/
+│           ├── __init__.py
+│           ├── server.py    # MCP tool definitions
+│           ├── Dockerfile   # Container spec for this MCP server
+│           └── requirements.txt
+│
+├── tests/                   # Pytest-based testing
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── test_mcp_client.py
+│   ├── test_mcp_server.py
+│   └── fixtures/
+│
+└── utilities/               # Shared helper code
+    ├── __init__.py
+    └── helpers.py
+```
+=======
+This repository is organized to support **containerized agents** and **MCP servers**.
+
+```text
+.
+├── README.md
+├── CONTRIBUTING.md
+├── creds.env
+├── .gitignore
+├── requirements.txt
+├── docker-compose.yml
+├── pyproject.toml
+├── poetry.lock
+│
+├── main.py                  # Entrypoint for agent container
+├── Dockerfile               # Agent container build
+│
+├── agents/                  # LangGraph agent implementations
+│   └── pii_agent/
+│       ├── __init__.py
+│       ├── graph.py
+│       ├── nodes.py
+│       ├── prompts.py
+│       ├── router.py
+│       └── state.py
+│
+├── mcp_services/            # One subdir = one MCP server container
+│   ├── client.py            # MCP client for agent
+│   └── servers/
+│       └── server_name/
+│           ├── __init__.py
+│           ├── server.py    # MCP tool definitions
+│           ├── Dockerfile   # Container spec for this MCP server
+│           └── requirements.txt
+│
+├── tests/                   # Pytest-based testing
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── test_mcp_client.py
+│   ├── test_mcp_server.py
+│   └── fixtures/
+│
+└── utilities/               # Shared helper code
+    ├── __init__.py
+    └── helpers.py
+```
+>>>>>>> Stashed changes
 
 ---
 
