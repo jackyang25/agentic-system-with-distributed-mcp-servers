@@ -1,1 +1,1 @@
-"""Nodes for the agent_name workflow."""
+"""Nodes for the Finance Agent workflow."""

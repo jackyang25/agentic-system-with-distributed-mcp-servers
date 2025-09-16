@@ -1,18 +1,24 @@
-"""State for the Geolocation agent workflow."""
+"""State for the GeoScout agent workflow."""
 
-from typing import Any, TypedDict
+from typing import Any, Dict, List, Literal, Optional
+
+from langchain_core.messages import BaseMessage
+from typing_extensions import Annotated, TypedDict
 
 
-class GeolocationState(TypedDict):
-    """State for the Geolocation agent workflow."""
+class GeoScoutState(TypedDict):
+    # Core workflow control
+    messages: Annotated[List[BaseMessage], "add_messages"]
+    current_step: str
+    step_count: int
+    workflow_status: Literal["in_progress", "completed", "error"]
 
-    region: str  # e.g., "Austin, TX"
-    budget_max: int  # from Finance Agent
-    zips: list[str]  # ZIP codes in the region
-    medians: dict[str, int]  # ZIP -> median_home_value
-    features: dict[
-        str, dict[Any, Any]
-    ]  # ZIP -> {school_rating, transit_score, safety_index, walkability}
-    results: list[dict[Any, Any]]  # final output rows
-    cache: dict[str, int]  # persisted median cache
-    errors: list[str]  # error messages
+    # User data collection
+    location_preferences: Dict[str, Any]  # cities, priorities, home type
+
+    # Agent results
+    geo_scout_results: Optional[Dict[str, Any]]  # neighborhoods list
+
+    # Basic error handling
+    error_count: int
+    session_id: str

@@ -1,1 +1,1 @@
-"""Graph for the Geolocation agent workflow."""
+"""Graph for the GeoScout agent workflow."""

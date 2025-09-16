@@ -1,1 +1,1 @@
-"""Prompts for the Geolocation agent workflow."""
+"""Prompts for the GeoScout agent workflow."""

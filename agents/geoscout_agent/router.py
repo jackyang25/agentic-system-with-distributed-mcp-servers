@@ -1,1 +1,1 @@
-"""Router for the Geolocation agent workflow."""
+"""Router for the GeoScout agent workflow."""

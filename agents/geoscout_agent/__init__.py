@@ -1,1 +1,1 @@
-"""Initialize Geolocation agent."""
+"""Initialize GeoScout agent."""
