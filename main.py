@@ -3,9 +3,10 @@
 import asyncio
 import os
 from dotenv import load_dotenv
+from fastmcp import Client
 
 # Load environment variables
-load_dotenv(dotenv_path="./creds.env")
+load_dotenv(dotenv_path="./.env")
 
 # --- Required API keys ---
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY", "")
@@ -22,15 +23,18 @@ if not os.environ["MCP_SERVER_NAME_PORT"]:
     raise ValueError("MCP_SERVER_NAME_PORT is not set in .env")
 
 # Dynamically build MCP URL
-MCP_HOST = os.environ["MCP_SERVER_NAME_NAME"]
-MCP_PORT = os.environ["MCP_SERVER_NAME_PORT"]
-MCP_URL = f"http://{MCP_HOST}:{MCP_PORT}/mcp"
-print(f"🔗 Using MCP server URL: {MCP_URL}")
+mcp_host = os.getenv("MCP_SERVER_NAME_NAME", "mcp_server_name")
+mcp_port = os.getenv("MCP_SERVER_NAME_PORT", "5050")
+mcp_url = f"http://{mcp_host}:{mcp_port}/mcp"
+
+print("🔗 Connecting to:", mcp_url)
+
+client = Client(mcp_url)
 
 # --- LangSmith Monitoring (must be set before chains/agents are used) ---
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY", "")
 if not os.environ["LANGSMITH_API_KEY"]:
-    print("⚠️  LANGSMITH_API_KEY not set. Traces will not be uploaded.")
+    print(" LANGSMITH_API_KEY not set. Traces will not be uploaded.")
 
 os.environ["LANGSMITH_TRACING"] = os.getenv("LANGSMITH_TRACING", "true")
 os.environ["LANGSMITH_PROJECT"] = os.getenv("LANGSMITH_PROJECT", "civic-assistant-team-5")

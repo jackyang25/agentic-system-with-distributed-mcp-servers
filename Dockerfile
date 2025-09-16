@@ -21,5 +21,4 @@ COPY . .
 # install deps
 RUN uv pip install --no-cache-dir -r requirements.txt --system
 
-ENTRYPOINT ["python3"]
-CMD ["main.py"]
+CMD ["python3", "main.py"]
