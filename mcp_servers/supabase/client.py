@@ -8,11 +8,13 @@ from mcp.client.stdio import stdio_client
 load_dotenv()
 
 class SupabaseClient:
-    def __init__(self):
+    def __init__(self, container_name="supabase-mcp-server"):
+        self.container_name = container_name
         self.server_params = StdioServerParameters(
-            command="npx",
+            command="docker",
             args=[
-                "-y", 
+                "exec", "-i", container_name,
+                "npx", 
                 "@supabase/mcp-server-supabase@latest", 
                 "--read-only",
                 "--project-ref=" + os.getenv("SUPABASE_PROJECT_REF", "YOUR_PROJECT_REF"),
@@ -66,33 +68,4 @@ class SupabaseClient:
         })
         return result
 
-if __name__ == "__main__":
-    async def test():
-        client = SupabaseClient()
-        
-        try:
-            print("Connecting to Supabase MCP server...")
-            await client.connect()
-            print("--------------------------------")
-            
-            print("Getting available tools...")
-            tools = await client.get_tools()
-            print("Available tools:", tools)
-            print("--------------------------------")
-            
-            print("Querying properties...")
-            result = await client.query_properties(1)
-            print("Query completed successfully!")
-            
-            # Can do multiple operations with same session
-            print("Querying more properties...")
-            result2 = await client.query_properties(2)
-            print("Second query completed!")
-            print("--------------------------------")
 
-        except Exception as e:
-            print(f"Error: {e}")
-        finally:
-            await client.disconnect()
-    
-    asyncio.run(test())

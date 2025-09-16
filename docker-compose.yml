@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Supabase MCP Server Container
+  supabase-mcp:
+    build:
+      context: ./mcp_servers
+      dockerfile: Dockerfile
+    container_name: supabase-mcp-server
+    environment:
+      - SUPABASE_PROJECT_REF=${SUPABASE_PROJECT_REF}
+      - SUPABASE_ACCESS_TOKEN=${SUPABASE_ACCESS_TOKEN}
+    restart: unless-stopped
+    # Keep the container running even if no active connections
+    command: tail -f /dev/null
+
+  # Main Application Container - contains your agents
+  marea:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: marea-main
+    depends_on:
+      - supabase-mcp
+    volumes:
+      # Mount docker socket so the main container can exec into mcp-server
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount source code for development
+      - .:/app
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    command: python app.py
+
+# Optional: Create a custom network for better isolation
+networks:
+  default:
+    name: marea-network
