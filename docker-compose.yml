@@ -14,6 +14,8 @@ services:
       - mcp
     ports:
       - "5050:5050"
+    env_file:
+      - .env
 
   agent:
     build:
@@ -33,3 +35,6 @@ services:
       - LANGSMITH_PROJECT=${LANGSMITH_PROJECT}
       - MCP_SERVER_NAME_NAME=${MCP_SERVER_NAME_NAME}
       - MCP_SERVER_NAME_PORT=${MCP_SERVER_NAME_PORT}
+    env_file:
+      - .env
+    command: bash -c "python3 main.py || tail -f /dev/null"
