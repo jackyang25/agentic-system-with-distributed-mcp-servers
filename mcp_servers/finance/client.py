@@ -1,24 +1,19 @@
-import os
-import asyncio
 from dotenv import load_dotenv
 from mcp import StdioServerParameters, ClientSession
 from mcp.client.stdio import stdio_client
+import asyncio
 
 # Load environment variables from .env file
 load_dotenv()
 
-class SupabaseClient:
-    def __init__(self, container_name="supabase-mcp-server"):
+class FinanceClient:
+    def __init__(self, container_name="finance-mcp-server"):
         self.container_name = container_name
         self.server_params = StdioServerParameters(
             command="docker",
             args=[
                 "exec", "-i", container_name,
-                "npx", 
-                "@supabase/mcp-server-supabase@latest", 
-                "--read-only",
-                "--project-ref=" + os.getenv("SUPABASE_PROJECT_REF", "YOUR_PROJECT_REF"),
-                "--access-token=" + os.getenv("SUPABASE_ACCESS_TOKEN", "your-token")
+                "python", "server.py"
             ]
         )
         self.session = None
@@ -26,10 +21,11 @@ class SupabaseClient:
         self._session_context = None
     
     async def connect(self):
-        """Establish persistent connection to Supabase MCP server"""
+        """Establish persistent connection to Finance MCP server"""
         if self.session:
             return
             
+        # Use proper async with pattern
         self._stdio_context = stdio_client(self.server_params)
         read_stream, write_stream = await self._stdio_context.__aenter__()
         
@@ -37,7 +33,7 @@ class SupabaseClient:
         self.session = await self._session_context.__aenter__()
         
         await self.session.initialize()
-        print("Connected to Supabase MCP server")
+        print("Connected to Finance MCP server")
     
     async def disconnect(self):
         """Close the persistent connection"""
@@ -59,7 +55,7 @@ class SupabaseClient:
         self.session = None
         self._session_context = None
         self._stdio_context = None
-        print("Disconnected from Supabase MCP server")
+        print("Disconnected from Finance MCP server")
     
     async def get_tools(self):
         """Get available tools"""
@@ -68,12 +64,12 @@ class SupabaseClient:
         tools_response = await self.session.list_tools()
         return [tool.name for tool in tools_response.tools]
     
-    async def query_properties(self, limit=1): # Wrappers are for parameter validation, error handling, and domain interface
-        """Query NYC property sales data"""
+    async def calculate_budget(self, income: float):
+        """Calculate 30% budget from income"""
         if not self.session:
             raise RuntimeError("Not connected. Call connect() first.")
-        result = await self.session.call_tool("execute_sql", {
-            "query": f"SELECT * FROM public.nyc_property_sales LIMIT {limit};"
+        result = await self.session.call_tool("calculate_budget", {
+            "income": income
         })
         return result
 
