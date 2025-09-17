@@ -1,47 +1,47 @@
-version: '3.8'
+version: "3.9"
+
+networks:
+  marea-network:
+    driver: bridge
 
 services:
-  # Supabase MCP Server Container
+  # Supabase MCP Server
   supabase-mcp:
     build:
-      context: ./mcp_servers/supabase
+      context: ./mcp_integration/servers/supabase
     container_name: supabase-mcp-server
     environment:
       - SUPABASE_PROJECT_REF=${SUPABASE_PROJECT_REF}
       - SUPABASE_ACCESS_TOKEN=${SUPABASE_ACCESS_TOKEN}
     restart: unless-stopped
-    # Keep the container running even if no active connections
     command: tail -f /dev/null
+    networks: [marea-network]
 
-  # Main Application Container - contains your agents
+  # Finance MCP Server
+  finance-mcp:
+    build:
+      context: ./mcp_integration/servers/finance
+    container_name: finance-mcp-server
+    restart: unless-stopped
+    command: tail -f /dev/null
+    networks: [marea-network]
+
+  # Main app (marea == agent)
   marea:
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     container_name: marea-main
     depends_on:
       - supabase-mcp
       - finance-mcp
     volumes:
-      # Mount docker socket so the main container can exec into mcp-server
+      # Keep this only if you need to exec into other containers from here
       - /var/run/docker.sock:/var/run/docker.sock
-      # Mount source code for development
       - .:/app
     ports:
       - "8000:8000"
+      - "5051:5051"
     restart: unless-stopped
     command: python app.py
-
-  # Finance MCP Server Container
-  finance-mcp:
-    build:
-      context: ./mcp_servers/finance
-    container_name: finance-mcp-server
-    restart: unless-stopped
-    # Keep the container running even if no active connections
-    command: tail -f /dev/null
-
-# Optional: Create a custom network for better isolation
-networks:
-  default:
-    name: marea-network
+    networks: [marea-network]

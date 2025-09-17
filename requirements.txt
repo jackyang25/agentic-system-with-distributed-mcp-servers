@@ -1,5 +1,0 @@
-pip
-fastmcp
-mcp[cli]
-pytest
-python-dotenv

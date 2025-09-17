@@ -11,10 +11,6 @@ USER mcpuser
 
 # No need to install - npx will download automatically
 
-# Expose port for potential network communication
-EXPOSE 3000
-
-
 # Default command - start the MCP server
 # Environment variables will be passed from docker-compose
 CMD ["npx", "@supabase/mcp-server-supabase", "--read-only", "--project-ref=${SUPABASE_PROJECT_REF}", "--access-token=${SUPABASE_ACCESS_TOKEN}"]

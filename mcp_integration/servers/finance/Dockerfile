@@ -14,8 +14,5 @@ COPY . .
 RUN useradd -m mcpuser && chown -R mcpuser:mcpuser /app
 USER mcpuser
 
-# Expose port for potential network communication
-EXPOSE 3000
-
 # Default command - keep container running
 CMD ["tail", "-f", "/dev/null"]

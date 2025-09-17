@@ -1,5 +1,5 @@
 import asyncio
-from mcp_servers.adapter import adapter
+from mcp_integration.adapter import adapter
 
 async def test_supabase_mcp():
     """Test client tools via adapter"""
@@ -29,7 +29,7 @@ async def test_supabase_mcp():
     except Exception as e:
         print(f"Supabase - Property query failed: {e}")
 
-
+    
     
     await mcp_adapter.disconnect_all()
 
