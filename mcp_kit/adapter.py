@@ -1,5 +1,5 @@
-from .servers.supabase.client import SupabaseClient
-from .servers.finance.client import FinanceClient
+from .clients.supabase_client import SupabaseClient
+from .clients.finance_client import FinanceClient
 
 class adapter:
 
