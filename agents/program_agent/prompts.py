@@ -11,4 +11,3 @@ Return JSON with the following keys:
 - benefits
 - source
 """
-

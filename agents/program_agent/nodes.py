@@ -7,9 +7,8 @@ llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 async def fetch_government_programs(state):
     profile = state.get("user_profile", {})
     query = f"Find homebuyer programs for profile: {profile}"
-    print("DEBUG >>> inside fetch_government_programs with query:", query)
-
-    # Call LLM (you can keep it async if you want actual LLM responses)
+   
+  # Call LLM (you can keep it async if you want actual LLM responses)
     _ = await llm.ainvoke(FUNDING_PROGRAM_PROMPT.format(query=query))
 
     # --- MOCKED structured programs (replace with parsing of LLM response) ---
@@ -46,5 +45,3 @@ async def fetch_government_programs(state):
         filtered.append(prog)
 
     return {"program_matcher_results": filtered}
-
-

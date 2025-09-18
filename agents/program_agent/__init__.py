@@ -1,2 +1,2 @@
-"""Initialize agent_name agent."""
+""" Initialize program_agent """
 from .graph import build_program_graph

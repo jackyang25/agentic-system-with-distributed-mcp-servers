@@ -1,1 +1,1 @@
-"""Initialize agent_name agent."""
+"""Initialize Finance Agent agent."""
