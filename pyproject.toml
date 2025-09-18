@@ -2,7 +2,7 @@
 name = "civic-assistant-team-5"
 version = "0.1.0"
 description = "Multi Agent Real Estate Assistant (MAREA)"
-authors = ["Carlos Huaccho <huaccho.carlos0612@gmail.com>", "Jack Yang <jy3784@nyu.edu>"]
+authors = ["Carlos Huaccho <huaccho.carlos0612@gmail.com>"]
 package-mode = false
 
 [tool.poetry.dependencies]
