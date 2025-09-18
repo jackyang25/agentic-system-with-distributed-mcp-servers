@@ -1,5 +1,5 @@
 import asyncio
-from mcp_integration.adapter import adapter
+from mcp_kit.adapter import adapter
 
 async def test_supabase_mcp():
     """Test client tools via adapter"""

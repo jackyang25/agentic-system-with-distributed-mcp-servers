@@ -1,5 +1,5 @@
 from langchain_core.tools import tool  
-from mcp_integration.adapter import adapter
+from mcp_kit.adapter import adapter
 
 # Global adapter instance
 mcp_adapter = adapter()

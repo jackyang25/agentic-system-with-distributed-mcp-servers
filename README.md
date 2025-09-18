@@ -112,7 +112,7 @@ This repository is organized to support **containerized agents** and **MCP serve
 │       ├── router.py
 │       └── state.py
 │
-├── mcp_integration/        # MCP integration components
+├── mcp_kit/               # MCP toolkit components
 │   ├── adapter.py          # MCP adapter
 │   ├── tools.py            # MCP tools
 │   ├── servers/            # MCP server implementations

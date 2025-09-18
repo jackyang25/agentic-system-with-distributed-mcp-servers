@@ -5,7 +5,7 @@ This directory contains MCP (Model Context Protocol) integration components for 
 ## Structure
 
 ```
-mcp_integration/
+mcp_kit/
 ├── README.md          # This file
 ├── adapter.py         # MCP adapter for connecting to servers
 ├── tools.py           # MCP tools and utilities
@@ -41,7 +41,7 @@ The Supabase MCP server provides database access through the MCP protocol.
 The MCP server runs in a separate container and communicates with MAREA via Docker exec and stdin/stdout pipes.
 
 ```python
-from mcp_integration.clients.supabase_client import SupabaseClient
+from mcp_kit.clients.supabase_client import SupabaseClient
 
 client = SupabaseClient("supabase-mcp-server")
 await client.connect()
