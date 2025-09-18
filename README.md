@@ -112,14 +112,15 @@ This repository is organized to support **containerized agents** and **MCP serve
 │       ├── router.py
 │       └── state.py
 │
-├── mcp_servers/            # One subdir = one MCP server container
-│   └── servers/
-│       └── server_name/
-│           ├── __init__.py
-│           ├── client.py    # MCP client
-│           ├── server.py    # MCP tool definitions
-│           ├── Dockerfile   # Container spec for this MCP server
-│           └── requirements.txt
+├── mcp_kit/               # MCP toolkit components
+│   ├── adapter.py          # MCP adapter
+│   ├── tools.py            # MCP tools
+│   ├── servers/            # MCP server implementations
+│   │   ├── finance/        # Finance MCP server
+│   │   └── supabase/       # Supabase MCP server
+│   └── clients/            # MCP client implementations
+│       ├── finance_client.py
+│       └── supabase_client.py
 │
 ├── tests/                   # Pytest-based testing
 │   ├── __init__.py

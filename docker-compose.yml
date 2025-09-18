@@ -1,40 +1,47 @@
 version: "3.9"
 
 networks:
-  mcp:
+  marea-network:
+    driver: bridge
 
 services:
-  mcp_server_name:
+  # Supabase MCP Server
+  supabase-mcp:
     build:
-      context: ./mcp_servers/servers/server_name/
-      dockerfile: Dockerfile
-    container_name: mcp_server_name
-    hostname: mcp_server_name
-    networks:
-      - mcp
-    ports:
-      - "5050:5050"
-    env_file:
-      - .env
+      context: ./mcp_kit/servers/supabase
+    container_name: supabase-mcp-server
+    environment:
+      - SUPABASE_PROJECT_REF=${SUPABASE_PROJECT_REF}
+      - SUPABASE_ACCESS_TOKEN=${SUPABASE_ACCESS_TOKEN}
+    restart: unless-stopped
+    command: tail -f /dev/null
+    networks: [marea-network]
 
-  agent:
+  # Finance MCP Server
+  finance-mcp:
+    build:
+      context: ./mcp_kit/servers/finance
+    container_name: finance-mcp-server
+    restart: unless-stopped
+    command: tail -f /dev/null
+    networks: [marea-network]
+
+  # Main app (marea == agent)
+  marea:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: agent
-    hostname: agent
-    networks:
-      - mcp
-    ports:
-      - "5051:5051"
+    container_name: marea-main
     depends_on:
-      - mcp_server_name
-    environment:
-      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
-      - LANGSMITH_TRACING=${LANGSMITH_TRACING}
-      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT}
-      - MCP_SERVER_NAME_NAME=${MCP_SERVER_NAME_NAME}
-      - MCP_SERVER_NAME_PORT=${MCP_SERVER_NAME_PORT}
-    env_file:
-      - .env
-    command: bash -c "python3 main.py || tail -f /dev/null"
+      - supabase-mcp
+      - finance-mcp
+    volumes:
+      # Keep this only if you need to exec into other containers from here
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/app
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    command: python app.py
+    networks: [marea-network]
+    user: "0:0"  # Run as root to access docker socket

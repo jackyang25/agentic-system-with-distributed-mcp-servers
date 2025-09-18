@@ -1,0 +1,1 @@
+# Supabase MCP package

@@ -1,24 +1,25 @@
-# Production
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS prod
+FROM python:3.12-slim
 
-EXPOSE 5051
+EXPOSE 8000
 WORKDIR /src
 
-# --- add toolchain ---
+# Install system packages and Docker CLI
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential pkg-config curl ca-certificates \
+    curl ca-certificates gnupg lsb-release \
+ && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
+ && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+ && apt-get update && apt-get install -y --no-install-recommends docker-ce-cli \
  && rm -rf /var/lib/apt/lists/*
 
-# Install Rust toolchain (needed by maturin/fastuuid)
-RUN curl -fsSL https://sh.rustup.rs | sh -s -- -y \
- && /root/.cargo/bin/rustc --version
-ENV PATH="/root/.cargo/bin:${PATH}"
-# --- end toolchain ---
+# Install Poetry
+RUN pip install poetry
 
-# copy files
+# Copy dependencies and install
+COPY pyproject.toml ./
+RUN poetry config virtualenvs.create false && \
+    poetry install --only=main --no-interaction --no-ansi --no-root
+
+# Copy application code
 COPY . .
 
-# install deps
-RUN uv pip install --no-cache-dir -r requirements.txt --system
-
-CMD ["python3", "main.py"]
+CMD ["python", "app.py"]
