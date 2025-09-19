@@ -1,26 +1,23 @@
 """Graph for the Budgeting Agent workflow."""
 
 from langgraph.graph import StateGraph
-from langchain_openai import ChatOpenAI
-from mcp_kit.tools import calculate_budget, query_home_by_id
 from .state import BudgetingState
-from .nodes import budget_calculation_node
+from .nodes import budget_calculation_node, loan_qualification_node
 
 
 def initialize_graph() -> StateGraph:
     """Initialize the budgeting agent graph with model and tools."""
     graph = StateGraph(BudgetingState)
     
-    # Add budget calculation node
+    # Add nodes
     graph.add_node("budget_calculation", budget_calculation_node)
+    graph.add_node("loan_qualification", loan_qualification_node)
     
-    
-    # Set entry point and end point (since we only have one node for testing)
+    # Set up the workflow: budget calculation -> loan qualification
     graph.set_entry_point("budget_calculation")
-    graph.set_finish_point("budget_calculation")
-    
-    # TODO: Add more nodes and edges here
-    
+    graph.add_edge("budget_calculation", "loan_qualification")
+    graph.set_finish_point("loan_qualification")
+        
     return graph
 
 
@@ -39,9 +36,7 @@ async def run_budgeting_agent(user_data):
         "credit_score": user_data["credit_score"],
         "zip_code": user_data["zip_code"],
         "budget_result": None,
-        "property_result": None,
-        "analysis": None,
-        "final_output": None
+        "loan_result": None
     }
     
     # Create and run the graph

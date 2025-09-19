@@ -99,7 +99,7 @@ This repository is organized to support **containerized agents** and **MCP serve
 ```text
 .
 ├── README.md
-├── app.py                   # Main application entry point
+├── gradio_app.py            # Main web application (FastAPI + Gradio)
 ├── docker-compose.yml       # Multi-container orchestration
 ├── Dockerfile               # Main application container
 ├── Makefile                 # Build and run commands
@@ -144,8 +144,82 @@ This repository is organized to support **containerized agents** and **MCP serve
 │       └── supabase_client.py
 │
 └── tests/                   # Test suite
-    └── __init__.py
+    ├── __init__.py
+    ├── test_planner_agent.py    # Planner agent workflow tests
+    └── test_program_agent.py    # Program agent tests
 ```
+
+---
+
+## Quick Start
+
+### 1. Environment Setup
+
+Create a `.env` file with your API keys:
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_KEY=your_supabase_anon_key_here
+```
+
+### 2. Start the Application
+
+```bash
+# Start all services
+make start
+
+# Or manually
+docker compose up --build -d
+```
+
+### 3. Access the Interface
+
+- **Web Interface**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
+
+### 4. Run Tests
+
+```bash
+# Test the planner agent workflow
+make test-planner
+
+# Test individual agents
+python tests/test_program_agent.py
+```
+
+### 5. Stop Services
+
+```bash
+make stop
+```
+
+---
+
+## Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `make start` | Start MAREA application |
+| `make stop` | Stop MAREA application |
+| `make logs` | Show container logs |
+| `make test-planner` | Run planner agent test |
+| `make clean` | Clean up files |
+
+---
+
+## Web Interface
+
+The system provides a modern web interface built with **FastAPI + Gradio**:
+
+- **Input Form**: Enter income, credit score, target home ID, and zip code
+- **Real-time Analysis**: Get instant financial analysis and recommendations
+- **API Access**: RESTful API for programmatic integration
+- **Example Data**: Pre-loaded examples for quick testing
+
+### API Endpoints
+
+- `POST /analyze` - Analyze user financial profile
+- `GET /docs` - API documentation
 
 ---
 

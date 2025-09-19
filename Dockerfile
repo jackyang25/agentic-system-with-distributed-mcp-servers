@@ -22,4 +22,4 @@ RUN poetry config virtualenvs.create false && \
 # Copy application code
 COPY . .
 
-CMD ["python", "app.py"]
+CMD ["python", "gradio_app.py"]

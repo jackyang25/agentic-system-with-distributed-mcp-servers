@@ -28,12 +28,10 @@ async def test_tools(mcp_adapter):
         print(f"FAILED: {e}")
     
 
-
-
-async def test_budgeting_agent():
-    """Test entry point for budgeting agent workflow"""
+async def test_planner_agent():
+    """Test entry point for planner agent workflow"""
     print("\n" + "="*60)
-    print("TESTING BUDGETING AGENT")
+    print("TESTING PLANNER AGENT")
     print("="*60)
     
     # Mock user data that will be converted to state
@@ -50,14 +48,47 @@ async def test_budgeting_agent():
     print(f"  Credit Score: {mock_user_data['credit_score']}")
     print(f"  Zip Code: {mock_user_data['zip_code']}")
     
-    print(f"\nTesting Budgeting Agent Workflow:")
+    print(f"\nTesting Planner Agent Workflow:")
     print("-" * 30)
     
     try:
-        # Import and call the budgeting agent
-        from agents.budgeting_agent.graph import run_budgeting_agent
-        result = await run_budgeting_agent(mock_user_data)
-        print(f"SUCCESS: Budgeting agent completed")
+        # Import and call the planner agent
+        from agents.planner_agent.graph import run_planner_agent
+        result = await run_planner_agent(mock_user_data)
+        print(f"SUCCESS: Planner agent completed")
+        
+        # Format the result for better readability
+        print("\n" + "="*60)
+        print("PLANNER AGENT RESULTS")
+        print("="*60)
+        
+        # Show gathered data
+        print("\nGATHERED DATA:")
+        print("-" * 30)
+        if result.get('budgeting_agent_results'):
+            budget_data = result['budgeting_agent_results']
+            print(f"• Income: ${budget_data.get('income', 'N/A'):,.2f}")
+            print(f"• Credit Score: {budget_data.get('credit_score', 'N/A')}")
+            print(f"• Target Home ID: {budget_data.get('target_home_id', 'N/A')}")
+            print(f"• Zip Code: {budget_data.get('zip_code', 'N/A')}")
+            
+            budget_result = budget_data.get('budget_result', {}).get('budget', {})
+            loan_result = budget_data.get('loan_result', {}).get('max_loan', {})
+            
+            print(f"• Monthly Budget (30% of income): ${budget_result.get('budget', 'N/A'):,.2f}")
+            print(f"• Maximum Loan Qualification: ${loan_result.get('max_loan', 'N/A'):,.2f}")
+        else:
+            print("• No budgeting data available")
+        
+        # Show analysis
+        print("\nFINAL ANALYSIS:")
+        print("-" * 30)
+        if result.get('final_analysis'):
+            print(result['final_analysis'])
+        else:
+            print("No analysis available")
+        
+        print("\n" + "="*60)
         
     except Exception as e:
         print(f"FAILED: {e}")
@@ -78,8 +109,8 @@ async def main():
     # Test the tools
     await test_tools(mcp_adapter)
     
-    # Test the budgeting agent
-    await test_budgeting_agent()
+    # Test the planner agent
+    await test_planner_agent()
 
     print("="*60)
     print("ALL TESTS COMPLETED")

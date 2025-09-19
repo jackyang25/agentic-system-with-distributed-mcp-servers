@@ -16,9 +16,5 @@ class BudgetingState(TypedDict):
     
     # Tool results
     budget_result: Optional[Dict[str, Any]]
-    property_result: Optional[Dict[str, Any]]
-    
-    # Analysis and output
-    analysis: Optional[Dict[str, Any]]
-    final_output: Optional[Dict[str, Any]]
+    loan_result: Optional[Dict[str, Any]]
 

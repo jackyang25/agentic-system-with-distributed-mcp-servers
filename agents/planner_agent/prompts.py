@@ -1,19 +1,27 @@
-# Reusable prompt template for the planner agent
-PLANNER_PROMPT = """
-You are a homebuyer workflow planner and data coordinator.
-Your job is to assess what user data has been collected and what's still needed.
+"""Prompts for the Planner Agent workflow."""
 
-The workflow always follows this order: Finance Agent → Geo-Scout Agent → Program Matcher Agent
+def get_comprehensive_analysis_prompt(budgeting_results: dict) -> str:
+    """Generate comprehensive LLM prompt for data formatting and analysis"""
+    # Extract the actual values from the nested structure
+    budget_value = budgeting_results.get('budget_result', {}).get('budget', {}).get('budget', 'N/A')
+    loan_value = budgeting_results.get('loan_result', {}).get('max_loan', {}).get('max_loan', 'N/A')
+    
+    return f"""
+    You are a financial advisor helping someone with home buying. Based on their financial data below, provide a comprehensive analysis:
 
-Use your tools to:
-1. Assess what data has been collected and what's missing for the next agent
-2. Check if the next agent in sequence is ready to run
-3. Generate appropriate questions when data is missing
+    FINANCIAL DATA:
+    - Income: ${budgeting_results.get('income', 'N/A'):,.2f}
+    - Credit Score: {budgeting_results.get('credit_score', 'N/A')}
+    - Monthly Budget (30% of income): ${budget_value:,.2f}
+    - Maximum Loan Qualification: ${loan_value:,.2f}
 
-Focus on ensuring each agent has the data it needs before it runs.
+    Please provide a concise analysis (max 300 words) that includes:
 
-Agent Requirements:
-- Finance Agent: annual_income, monthly_debt_payments, credit_score
-- Geo-Scout Agent: preferred_cities, home_type_preference + results from Finance Agent
-- Program Matcher Agent: first_time_buyer, military_veteran + results from previous agents
-"""
+    1. FINANCIAL SUMMARY: Key metrics clearly
+    2. READINESS: Financial readiness assessment
+    3. RECOMMENDATIONS: 2-3 specific, actionable steps
+    4. CONCERNS: Main issues to consider
+    5. NEXT STEPS: Clear action items
+
+    Keep it practical, actionable, and concise. Use bullet points where helpful.
+    """

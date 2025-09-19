@@ -1,67 +1,67 @@
-from langchain_openai import ChatOpenAI
-from states.planner_state import PlannerState
-from .prompts import PLANNER_PROMPT
+"""Nodes for the Planner Agent workflow."""
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+from .state import PlannerState
+from .prompts import get_comprehensive_analysis_prompt
+from agents.budgeting_agent.graph import run_budgeting_agent
 
-async def assess_workflow(state: PlannerState):
-    """Assess workflow state and determine what's needed next."""
+
+async def run_budgeting_agent_node(state: PlannerState):
+    """Call the budgeting agent and store results in state"""
+    current_step = state.get('current_step', 'unknown')
+    print(f"STEP: {current_step} -> Calling budgeting agent...")
     
-    collected_data = state.get("collected_data", {})
-    completed_agents = state.get("agents_completed", [])
-    
-    # Simple logic - no complex LLM needed
-    next_agent, missing_fields, questions = determine_next_steps(collected_data, completed_agents)
-    
-    # Calculate progress
-    progress = len(completed_agents) / 3.0
-    
-    return {
-        "next_agent": next_agent,
-        "missing_data_fields": missing_fields,
-        "recommended_questions": questions,
-        "workflow_progress": progress,
-        "current_step": "assessment_complete",
-        "step_count": state.get("step_count", 0) + 1
+    # Extract user data from state
+    user_data = {
+        "income": state["income"],
+        "target_home_id": state["target_home_id"],
+        "credit_score": state["credit_score"],
+        "zip_code": state["zip_code"]
     }
-
-def determine_next_steps(collected_data, completed_agents):
-    """Pure function to determine next steps - no LLM needed."""
     
-    # Check next agent in sequence
-    if "finance" not in completed_agents:
-        required = ["annual_income", "monthly_debt_payments", "credit_score"]
-        missing = [f for f in required if not collected_data.get(f)]
-        if missing:
-            return "collect_data", missing, generate_questions(missing)
-        return "finance", [], []
+    # Call the budgeting agent
+    budgeting_results = await run_budgeting_agent(user_data)
+    
+    # Store results in state
+    state["budgeting_agent_results"] = budgeting_results
+    state["current_step"] = "budgeting_complete"
+    
+    return state
+
+
+async def synthesis_node(state: PlannerState):
+    """Synthesize all agent results into final analysis"""
+    current_step = state.get('current_step', 'unknown')
+    print(f"STEP: {current_step} -> Generating final analysis...")
+    
+    from langchain_openai import ChatOpenAI
+    
+    # For now, just return the budgeting results as analysis
+    # You can expand this later to include other agents
+    budgeting_results = state.get("budgeting_agent_results", {})
+    
+    if budgeting_results:
+        print("   Calling LLM for analysis...")
+        # Use LLM to provide comprehensive analysis
+        model = ChatOpenAI(
+            model="gpt-4o-mini",
+            timeout=30,  # 30 second timeout
+            max_retries=2
+        )
         
-    elif "geo_scout" not in completed_agents:
-        required = ["preferred_cities", "home_type_preference"]
-        missing = [f for f in required if not collected_data.get(f)]
-        if missing or not collected_data.get("finance_results"):
-            return "collect_data", missing, generate_questions(missing)
-        return "geo_scout", [], []
+        # Get the comprehensive analysis prompt from prompts.py
+        analysis_prompt = get_comprehensive_analysis_prompt(budgeting_results)
         
-    elif "program_matcher" not in completed_agents:
-        required = ["first_time_buyer", "military_veteran"]
-        missing = [f for f in required if collected_data.get(f) is None]
-        if missing or not collected_data.get("geo_scout_results"):
-            return "collect_data", missing, generate_questions(missing)
-        return "program_matcher", [], []
-        
+        try:
+            response = await model.ainvoke(analysis_prompt)
+            analysis = response.content
+            print("   LLM analysis completed")
+        except Exception as e:
+            print(f"   LLM analysis failed: {e}")
+            analysis = f"Analysis unavailable due to error: {str(e)}"
     else:
-        return "complete", [], []
-
-def generate_questions(missing_fields):
-    """Generate questions for missing fields."""
-    question_map = {
-        "annual_income": "What's your annual gross income?",
-        "monthly_debt_payments": "What are your monthly debt payments?", 
-        "credit_score": "What's your credit score?",
-        "preferred_cities": "Which cities interest you?",
-        "home_type_preference": "House or condo preference?",
-        "first_time_buyer": "Are you a first-time buyer?",
-        "military_veteran": "Are you a veteran?"
-    }
-    return [question_map.get(field, f"Please provide {field}") for field in missing_fields[:2]]
+        analysis = "No budgeting results available for analysis."
+    
+    state["final_analysis"] = analysis
+    state["current_step"] = "synthesis_complete"
+    
+    return state

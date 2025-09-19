@@ -32,12 +32,14 @@ services:
     depends_on:
       - supabase-mcp
       - finance-mcp
+    environment:
+      - PYTHONUNBUFFERED=1
     volumes:
       # Keep this only if you need to exec into other containers from here
       - /var/run/docker.sock:/var/run/docker.sock
       - .:/app
     ports:
       - "8000:8000"
-    command: python app.py
+    command: python gradio_app.py
     networks: [marea-network]
     user: "0:0"  # Run as root to access docker socket

@@ -73,6 +73,16 @@ class FinanceClient:
         })
         return self._parse_budget_data(result, income)
     
+    async def loan_qualification(self, income: float, credit_score: int):
+        """Calculate maximum loan amount based on income and credit score"""
+        if not self.session:
+            raise RuntimeError("Not connected. Call connect() first.")
+        result = await self.session.call_tool("loan_qualification", {
+            "income": income,
+            "credit_score": credit_score
+        })
+        return self._parse_loan_data(result)
+    
     def _parse_budget_data(self, result, income):
         """Parse MCP result and return clean budget data"""
         if not result or not hasattr(result, 'content') or not result.content:
@@ -95,6 +105,31 @@ class FinanceClient:
                 "budget": budget_value,
                 "income": income,
                 "percentage": 0.30
+            }
+        except (ValueError, TypeError, AttributeError):
+            # If parsing fails, return original result
+            return result
+    
+    def _parse_loan_data(self, result):
+        """Parse MCP result and return clean loan data"""
+        if not result or not hasattr(result, 'content') or not result.content:
+            return result
+            
+        try:
+            # The result.content is a list of TextContent objects
+            if not isinstance(result.content, list) or len(result.content) == 0:
+                return result
+                
+            content_text = result.content[0].text
+            if not isinstance(content_text, str):
+                return result
+                
+            # Extract the loan value from the text
+            loan_value = float(content_text)
+            
+            # Return clean loan data
+            return {
+                "max_loan": loan_value
             }
         except (ValueError, TypeError, AttributeError):
             # If parsing fails, return original result

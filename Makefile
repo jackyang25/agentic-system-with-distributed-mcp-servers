@@ -1,4 +1,4 @@
-.PHONY: help install start stop clean logs
+.PHONY: help install start stop clean logs test-planner
 
 help:
 	@echo "Available commands:"
@@ -6,6 +6,7 @@ help:
 	@echo "  make start    - Start MAREA application"
 	@echo "  make stop     - Stop MAREA application"
 	@echo "  make logs     - Show container logs"
+	@echo "  make test-planner - Run planner agent test in container"
 	@echo "  make clean    - Clean up files"
 
 install:
@@ -19,6 +20,9 @@ stop:
 
 logs:
 	docker compose logs -f
+
+test-planner:
+	docker exec marea-main python tests/test_planner_agent.py
 
 clean:
 	find . -name "*.pyc" -delete
