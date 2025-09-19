@@ -11,6 +11,5 @@ USER mcpuser
 
 # No need to install - npx will download automatically
 
-# Default command - start the MCP server
-# Environment variables will be passed from docker-compose
-CMD ["npx", "@supabase/mcp-server-supabase", "--read-only", "--project-ref=${SUPABASE_PROJECT_REF}", "--access-token=${SUPABASE_ACCESS_TOKEN}"]
+## Intentionally no CMD; container is kept idle by docker-compose and the
+## MCP server is started via docker exec from the Python client.

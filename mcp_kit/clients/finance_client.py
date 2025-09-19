@@ -71,6 +71,33 @@ class FinanceClient:
         result = await self.session.call_tool("calculate_budget", {
             "income": income
         })
-        return result
+        return self._parse_budget_data(result, income)
+    
+    def _parse_budget_data(self, result, income):
+        """Parse MCP result and return clean budget data"""
+        if not result or not hasattr(result, 'content') or not result.content:
+            return result
+            
+        try:
+            # The result.content is a list of TextContent objects
+            if not isinstance(result.content, list) or len(result.content) == 0:
+                return result
+                
+            content_text = result.content[0].text
+            if not isinstance(content_text, str):
+                return result
+                
+            # Extract the budget value from the text
+            budget_value = float(content_text)
+            
+            # Return clean budget data with the input income
+            return {
+                "budget": budget_value,
+                "income": income,
+                "percentage": 0.30
+            }
+        except (ValueError, TypeError, AttributeError):
+            # If parsing fails, return original result
+            return result
 
 

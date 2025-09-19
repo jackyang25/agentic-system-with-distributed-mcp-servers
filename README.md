@@ -7,62 +7,90 @@ _Multi-agent homebuyer assistance system with financial analysis and neighborhoo
 
 ## Architecture Overview
 
-This project follows a **multi-agent pipeline architecture**.
+This project follows a **multi-agent pipeline architecture** built with LangGraph and MCP (Model Context Protocol).
 
-- **Three specialized agents** working sequentially
-- **Human-in-the-loop (HITL)** confirmation at critical decision points
-- **JSON-structured outputs** for each agent stage
-- **Caching strategy** for performance optimization
-- **Neighborhood-focused MVP** (listings integration in future phases)
+- **Specialized agents** working with external data sources via MCP
+- **MCP servers** providing real-time financial and property data
+- **LangGraph workflows** orchestrating agent interactions
+- **Docker containerization** for scalable deployment
+- **Budgeting-focused MVP** with property analysis capabilities
 
 ---
 
 ## Agent Pipeline
 
-Each agent has a clear role and defined scope:
+The system consists of a **Planner Agent** that orchestrates specialized agents:
 
-- **Finance Agent** – computes housing affordability and payment breakdown
+- **Planner Agent** – orchestrates the sequential workflow and synthesizes final recommendations
+- **Budgeting Agent** – calculates housing affordability and provides budget recommendations
 - **Geo-Scout Agent** – finds neighborhoods within budget, evaluates quality of life
-- **Program Matcher Agent** – identifies eligible assistance programs and loans
-- **Synthesizer LLM** – combines outputs into actionable recommendations
+- **Program Agent** – identifies eligible assistance programs and loans
 
 ---
 
 ## Core Workflow
 
+The Planner Agent orchestrates a sequential workflow through specialized agents:
+
 ```mermaid
 flowchart TD
-  A[User Input] --> B[Finance Agent]
-  B --> C[Geo-Scout Agent]
-  C --> D[Program Matcher Agent]
-  D --> E[Orchestrator]
-  E --> F[Final Report]
+  A[Entry Point] --> B[First Node: Call Budgeting Agent]
+  B --> C[Second Node: Call Program Agent]
+  C --> D[Third Node: Call Geolocation Agent]
+  D --> E[Fourth Node: Synthesize for User Facing Output]
 
-  B -.-> G[HITL: Priorities]
-  G --> C
-  D -.-> H[HITL: Eligibility]
-  H --> E
+  B --> F[Budgeting Agent]
+  C --> G[Program Agent]
+  D --> H[Geolocation Agent]
+
+  I[Evaluation, Validation, Telemetry] -.-> B
+  I -.-> C
+  I -.-> D
+  I -.-> E
 ```
+
+### Sequential Orchestration
+
+1. **Budgeting Agent** - Calculates housing affordability and budget recommendations
+2. **Program Agent** - Identifies eligible assistance programs and loans
+3. **Geo-Scout Agent** - Finds neighborhoods within budget and evaluates quality of life
+4. **Synthesis** - Combines all outputs into actionable user recommendations
+
+### Evaluation, Validation, Telemetry
+
+Each step includes validation, error handling, and performance monitoring to ensure reliable operation.
 
 ---
 
 ## Agent Specifications
 
-### Finance Agent
+### Planner Agent
 
-**Input:** Income, debt, credit score, savings, expenses  
-**Output:** `{max_home_price, monthly_payment, readiness_score}`  
-**Rule:** Housing cost ≤ 30% of gross income  
-**Cache:** Profiles by (income, debt, savings, credit score)
+**Role:** Orchestrates the sequential workflow and synthesizes final recommendations  
+**Input:** User financial profile, preferences, and goals  
+**Output:** Comprehensive homebuying plan with actionable recommendations  
+**Workflow:** 
+1. Calls Budgeting Agent to establish financial foundation
+2. Calls Program Agent to identify assistance opportunities  
+3. Calls Geo-Scout Agent to find suitable neighborhoods
+4. Synthesizes all outputs into cohesive user-facing recommendations
+**Integration:** Coordinates with all specialized agents via LangGraph workflows
+
+### Budgeting Agent
+
+**Input:** User income, financial goals  
+**Output:** `{budget_amount, budget_percentage, recommendations}`  
+**Rule:** Housing budget = 30% of gross income  
+**MCP Integration:** Finance server for budget calculations
 
 ### Geo-Scout Agent
 
-**Input:** Budget from Finance Agent, target city, user priorities (HITL)  
+**Input:** Budget from Budgeting Agent, target city, user priorities  
 **Output:** `[{zip, median_home_value, school_rating, transit_score, safety_index}]`  
-**Rule:** All median home values ≤ Finance Agent's max  
+**Rule:** All median home values ≤ Budgeting Agent's max  
 **Cache:** Median home values per ZIP
 
-### Program Matcher Agent
+### Program Agent
 
 **Input:** Location, income vs AMI, buyer status  
 **Output:** `[{name, eligibility, benefit}]`  
@@ -79,32 +107,27 @@ This repository is organized to support **containerized agents** and **MCP serve
 ```text
 .
 ├── README.md
-├── CONTRIBUTING.md
-├── .env
-├── .gitignore
-├── requirements.txt
-├── docker-compose.yml
-├── pyproject.toml
-├── poetry.lock
-├── main.py                  # Entrypoint for agent container
-├── Dockerfile               # Agent container build
+├── app.py                   # Main application entry point
+├── docker-compose.yml       # Multi-container orchestration
+├── Dockerfile               # Main application container
+├── Makefile                 # Build and run commands
+├── pyproject.toml           # Python dependencies
+├── poetry.lock              # Locked dependency versions
 │
 ├── agents/                  # LangGraph agent implementations
-│   └── finance_agent/
-│       ├── __init__.py
-│       ├── graph.py
-│       ├── nodes.py
-│       ├── prompts.py
-│       ├── router.py
-│       └── state.py
-│   └── geoscout_agent/
-│       ├── __init__.py
-│       ├── graph.py
-│       ├── nodes.py
-│       ├── prompts.py
-│       ├── router.py
-│       └── state.py
-│   └── program_agent/
+│   ├── budgeting_agent/     # Budget calculation and recommendations
+│   │   ├── graph.py         # LangGraph workflow definition
+│   │   ├── nodes.py         # Individual workflow nodes
+│   │   ├── prompts.py       # LLM prompts and templates
+│   │   └── state.py         # State management
+│   ├── geoscout_agent/      # Neighborhood discovery
+│   │   ├── __init__.py
+│   │   ├── graph.py
+│   │   ├── nodes.py
+│   │   ├── prompts.py
+│   │   ├── router.py
+│   │   └── state.py
+│   └── program_agent/       # Assistance program matching
 │       ├── __init__.py
 │       ├── graph.py
 │       ├── nodes.py
@@ -112,27 +135,43 @@ This repository is organized to support **containerized agents** and **MCP serve
 │       ├── router.py
 │       └── state.py
 │
-├── mcp_kit/               # MCP toolkit components
-│   ├── adapter.py          # MCP adapter
-│   ├── tools.py            # MCP tools
-│   ├── servers/            # MCP server implementations
-│   │   ├── finance/        # Finance MCP server
-│   │   └── supabase/       # Supabase MCP server
-│   └── clients/            # MCP client implementations
+├── mcp_kit/                 # MCP toolkit components
+│   ├── __init__.py
+│   ├── adapter.py           # MCP adapter for service integration
+│   ├── tools.py             # LangChain tools for MCP services
+│   ├── README.md            # MCP kit documentation
+│   ├── servers/             # MCP server implementations
+│   │   ├── finance/         # Finance calculation server
+│   │   │   ├── Dockerfile
+│   │   │   └── server.py
+│   │   └── supabase/        # Property data server
+│   │       └── Dockerfile
+│   └── clients/             # MCP client implementations
+│       ├── __init__.py
 │       ├── finance_client.py
 │       └── supabase_client.py
 │
-├── tests/                   # Pytest-based testing
-│   ├── __init__.py
-│   ├── conftest.py
-│   ├── test_mcp_client.py
-│   ├── test_mcp_server.py
-│   └── fixtures/
-│
-└── utilities/               # Shared helper code
-    ├── __init__.py
-    └── helpers.py
+└── tests/                   # Test suite
+    └── __init__.py
 ```
+
+---
+
+## MCP Architecture
+
+The system uses **Model Context Protocol (MCP)** to connect agents with external data sources:
+
+- **MCP Adapter**: Central coordinator managing connections to all MCP servers
+- **Finance MCP Server**: Provides budget calculations and financial analysis
+- **Supabase MCP Server**: Supplies property data and neighborhood information
+- **LangChain Tools**: Bridge between agents and MCP services
+
+### Key Components
+
+- `mcp_kit/adapter.py` - MCP connection management
+- `mcp_kit/tools.py` - LangChain tools for MCP integration
+- `mcp_kit/servers/` - Individual MCP server implementations
+- `mcp_kit/clients/` - MCP client wrappers
 
 ---
 
@@ -152,6 +191,33 @@ CREDIT_RANGES = {
 MAX_HOUSING_RATIO = 0.30  # 30% of gross income
 MIN_READINESS_SCORE = 0.6
 ```
+
+---
+
+## Environment Setup
+
+Create a `.env` file in the project root with the following required keys:
+
+```bash
+# OpenAI API Key (required for LLM functionality)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Supabase Configuration (required for property data)
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_KEY=your_supabase_anon_key_here
+
+# LangSmith Configuration (optional, for monitoring)
+LANGSMITH_API_KEY=your_langsmith_api_key_here
+LANGSMITH_TRACING=true
+LANGSMITH_PROJECT=civic-assistant-team-5
+```
+
+### Required Keys:
+- `OPENAI_API_KEY`: For LLM model access
+- `SUPABASE_URL` & `SUPABASE_KEY`: For property data access
+
+### Optional Keys:
+- LangSmith keys for monitoring and tracing
 
 ---
 
@@ -183,14 +249,3 @@ MAREA (Multi-Agent Real Estate Assistant) is designed specifically for first-tim
 ```
 
 ---
-
-# Langsmith integration
-Successfully integrated LangSmith monitoring into the MCP Agent.
-Environment variables (LANGSMITH_API_KEY, LANGSMITH_TRACING, LANGSMITH_PROJECT) are loaded via creds.env and passed to the agent in Docker.
-Verified end-to-end tracing by running a test prompt (Hello, are you connected to LangSmith?) and confirming the run appears in the LangSmith dashboard under project civic-assistant-team-5.
-Traces show inputs, outputs, token usage, latency, and model metadata.
-This enables full observability of LLM calls for debugging, optimization, and cost tracking.
-Next Steps:
-Add more detailed traces for MCP client-server interactions (e.g., get_mcp_data() calls).
-Configure dashboards/alerts in LangSmith if required by the team.
-

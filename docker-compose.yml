@@ -10,9 +10,6 @@ services:
     build:
       context: ./mcp_kit/servers/supabase
     container_name: supabase-mcp-server
-    environment:
-      - SUPABASE_PROJECT_REF=${SUPABASE_PROJECT_REF}
-      - SUPABASE_ACCESS_TOKEN=${SUPABASE_ACCESS_TOKEN}
     restart: unless-stopped
     command: tail -f /dev/null
     networks: [marea-network]
@@ -41,7 +38,6 @@ services:
       - .:/app
     ports:
       - "8000:8000"
-    restart: unless-stopped
     command: python app.py
     networks: [marea-network]
     user: "0:0"  # Run as root to access docker socket

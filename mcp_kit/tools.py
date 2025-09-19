@@ -11,9 +11,10 @@ async def calculate_budget(income: float) -> dict:
     return {"budget": result}
 
 @tool
-async def query_properties(limit: int = 1) -> dict:
-    """Query NYC property sales data using Supabase MCP"""
-    result = await mcp_adapter.supabase.query_properties(limit)
-    return {"properties": result}
+async def query_home_by_id(home_id: int) -> dict:
+    """Query NYC property sales data using Supabase MCP by HOME_ID"""
+    result = await mcp_adapter.supabase.query_home_by_id(home_id)
+    return {"property": result}
+
 
 

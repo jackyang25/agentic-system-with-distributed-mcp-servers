@@ -7,4 +7,4 @@ def calculate_budget(income: float) -> float:
     return income * 0.30
 
 if __name__ == "__main__":
-    server.run(transport="stdio")  # ← THIS starts the server
+    server.run(transport="stdio")
