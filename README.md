@@ -34,19 +34,11 @@ The Planner Agent orchestrates a sequential workflow through specialized agents:
 
 ```mermaid
 flowchart TD
-  A[Entry Point] --> B[First Node: Call Budgeting Agent]
-  B --> C[Second Node: Call Program Agent]
-  C --> D[Third Node: Call Geolocation Agent]
-  D --> E[Fourth Node: Synthesize for User Facing Output]
-
-  B --> F[Budgeting Agent]
-  C --> G[Program Agent]
-  D --> H[Geolocation Agent]
-
-  I[Evaluation, Validation, Telemetry] -.-> B
-  I -.-> C
-  I -.-> D
-  I -.-> E
+  F[Entry Point] --> A[Planner Agent]
+  A --> B[1. Budget Agent]
+  A --> C[2. Program Agent]
+  A --> D[3. GeoScout Agent]
+  A --> E[4. Final Synthesis & Output]
 ```
 
 ### Sequential Orchestration
