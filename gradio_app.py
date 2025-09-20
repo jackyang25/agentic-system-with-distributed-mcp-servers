@@ -26,7 +26,7 @@ def format_planner_results(result):
         budget_result = (budget.get('budget_result') or {}).get('budget') or {}
         loan_result   = (budget.get('loan_result') or {}).get('max_loan') or {}
 
-        lines.append(f"**Monthly Budget:** {_fmt_money(budget_result.get('budget'))}")
+        lines.append(f"**Yearly Budget:** {_fmt_money(budget_result.get('budget'))}")
         lines.append(f"**Max Loan:** {_fmt_money(loan_result.get('max_loan'))}\n")
     else:
         lines.append("No budgeting data available\n")
