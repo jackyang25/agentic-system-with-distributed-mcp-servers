@@ -23,6 +23,15 @@ services:
     command: tail -f /dev/null
     networks: [marea-network]
 
+  # Location MCP Server
+  location-mcp:
+    build:
+      context: ./mcp_kit/servers/location
+    container_name: location-mcp-server
+    restart: unless-stopped
+    command: tail -f /dev/null
+    networks: [marea-network]
+
   # Main app (marea == agent)
   marea:
     build:
@@ -32,6 +41,7 @@ services:
     depends_on:
       - supabase-mcp
       - finance-mcp
+      - location-mcp
     environment:
       - PYTHONUNBUFFERED=1
     volumes:

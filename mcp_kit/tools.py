@@ -22,5 +22,9 @@ async def query_home_by_id(home_id: int) -> dict:
     result = await mcp_adapter.supabase.query_home_by_id(home_id)
     return {"property": result}
 
-
+@tool
+async def get_transit_score(zip_code: str) -> dict:
+    """Get transit score and summary for a specific location using Location MCP"""
+    result = await mcp_adapter.location.get_transit_score(zip_code)
+    return {"transit_score": result}
 
