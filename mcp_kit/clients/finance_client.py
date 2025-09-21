@@ -86,43 +86,46 @@ class FinanceClient:
     def _parse_budget_data(self, result, income):
         """Parse MCP result and return clean budget data"""
         if not result or not hasattr(result, 'content') or not result.content:
-            return result
+            return {"error": "No result from MCP server", "raw_result": str(result)}
             
         try:
             # The result.content is a list of TextContent objects
             if not isinstance(result.content, list) or len(result.content) == 0:
-                return result
+                return {"error": "Invalid result format", "raw_result": str(result)}
                 
             content_text = result.content[0].text
             if not isinstance(content_text, str):
-                return result
+                return {"error": "Invalid result format", "raw_result": str(result)}
                 
             # Extract the budget value from the text
             budget_value = float(content_text)
             
             # Return clean budget data with the input income
+            # Convert yearly budget to monthly budget
+            monthly_budget = budget_value / 12
             return {
-                "budget": budget_value,
+                "budget": monthly_budget,
+                "yearly_budget": budget_value,
                 "income": income,
                 "percentage": 0.30
             }
         except (ValueError, TypeError, AttributeError):
-            # If parsing fails, return original result
-            return result
+            # If parsing fails, return error dictionary
+            return {"error": "Failed to parse budget data", "raw_result": str(result)}
     
     def _parse_loan_data(self, result):
         """Parse MCP result and return clean loan data"""
         if not result or not hasattr(result, 'content') or not result.content:
-            return result
+            return {"error": "No result from MCP server", "raw_result": str(result)}
             
         try:
             # The result.content is a list of TextContent objects
             if not isinstance(result.content, list) or len(result.content) == 0:
-                return result
+                return {"error": "Invalid result format", "raw_result": str(result)}
                 
             content_text = result.content[0].text
             if not isinstance(content_text, str):
-                return result
+                return {"error": "Invalid result format", "raw_result": str(result)}
                 
             # Extract the loan value from the text
             loan_value = float(content_text)
@@ -132,7 +135,7 @@ class FinanceClient:
                 "max_loan": loan_value
             }
         except (ValueError, TypeError, AttributeError):
-            # If parsing fails, return original result
-            return result
+            # If parsing fails, return error dictionary
+            return {"error": "Failed to parse loan data", "raw_result": str(result)}
 
 

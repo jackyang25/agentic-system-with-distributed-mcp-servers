@@ -82,6 +82,33 @@ class SupabaseClient:
         # Parse and return clean data
         return self._parse_property_data(result)
     
+    async def query_price_data_by_zip_and_units(self, zip_code: str, residential_units: int):
+        """Query comprehensive price data by zip code and residential units"""
+        if not self.session:
+            raise RuntimeError("Not connected. Call connect() first.")
+        
+        query = f"""
+        SELECT 
+            AVG(CAST("SALE PRICE" AS NUMERIC)) as average_sale_price,
+            MIN(CAST("SALE PRICE" AS NUMERIC)) as min_sale_price,
+            MAX(CAST("SALE PRICE" AS NUMERIC)) as max_sale_price,
+            COUNT(*) as total_properties,
+            "ZIP CODE" as zip_code,
+            "RESIDENTIAL UNITS" as residential_units
+        FROM public.nyc_property_sales 
+        WHERE "ZIP CODE" = '{zip_code}' 
+        AND CAST("RESIDENTIAL UNITS" AS INTEGER) = {residential_units}
+        AND "SALE PRICE" ~ '^[0-9]+$'
+        GROUP BY "ZIP CODE", "RESIDENTIAL UNITS";
+        """
+            
+        result = await self.session.call_tool("execute_sql", {
+            "query": query
+        })
+        
+        # Parse and return clean data
+        return self._parse_price_data(result)
+
     def _parse_property_data(self, result):
         """Parse MCP result and return clean property data"""
         if not result or not hasattr(result, 'content') or not result.content:
@@ -137,6 +164,65 @@ class SupabaseClient:
         except (json.JSONDecodeError, KeyError, IndexError, TypeError, AttributeError) as e:
             # Debug: print the error to see what's happening
             print(f"DEBUG: Parsing failed with error: {e}")
+            print(f"DEBUG: Content text: {content_text[:200]}...")
+            # If anything goes wrong, return original result
+            return result
+
+    def _parse_price_data(self, result):
+        """Parse MCP result and return clean price data"""
+        if not result or not hasattr(result, 'content') or not result.content:
+            return result
+            
+        import json
+        try:
+            # The result.content is a list of TextContent objects
+            if not isinstance(result.content, list) or len(result.content) == 0:
+                return result
+                
+            content_text = result.content[0].text
+            if not isinstance(content_text, str):
+                return result
+                
+            # Extract the JSON part between the boundaries
+            start_marker = '<untrusted-data-'
+            end_marker = '</untrusted-data-'
+            start_idx = content_text.find(start_marker)
+            end_idx = content_text.find(end_marker)
+            
+            if start_idx == -1 or end_idx == -1 or start_idx >= end_idx:
+                return result
+                
+            # Find the JSON array within the boundaries
+            json_start = content_text.find('[', start_idx)
+            json_end = content_text.find(']', json_start)
+            
+            if json_start == -1 or json_end == -1 or json_start >= json_end:
+                return result
+                
+            json_str = content_text[json_start:json_end + 1]
+            # Unescape the JSON string to handle escaped quotes
+            json_str = json_str.replace('\\"', '"')
+            data_list = json.loads(json_str)
+            
+            if not isinstance(data_list, list) or len(data_list) == 0:
+                return {"error": "No data found for the specified criteria"}
+                
+            data = data_list[0]
+            if not isinstance(data, dict):
+                return {"error": "Invalid data format"}
+                    
+            # Return comprehensive price data
+            return {
+                "zip_code": data.get("zip_code"),
+                "residential_units": data.get("residential_units"),
+                "average_sale_price": round(float(data.get("average_sale_price", 0)), 2) if data.get("average_sale_price") else 0,
+                "min_sale_price": round(float(data.get("min_sale_price", 0)), 2) if data.get("min_sale_price") else 0,
+                "max_sale_price": round(float(data.get("max_sale_price", 0)), 2) if data.get("max_sale_price") else 0,
+                "total_properties": data.get("total_properties", 0)
+            }
+        except (json.JSONDecodeError, KeyError, IndexError, TypeError, AttributeError) as e:
+            # Debug: print the error to see what's happening
+            print(f"DEBUG: Average price parsing failed with error: {e}")
             print(f"DEBUG: Content text: {content_text[:200]}...")
             # If anything goes wrong, return original result
             return result

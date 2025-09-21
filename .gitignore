@@ -62,3 +62,7 @@ npm-debug.log*
 # Temporary files
 tmp/
 temp/
+
+# Generated embeddings and CSV files
+utils/*.csv
+utils/rag_embeddings/

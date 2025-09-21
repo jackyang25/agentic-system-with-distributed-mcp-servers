@@ -13,9 +13,9 @@ async def run_budgeting_agent_node(state: PlannerState):
     # Extract user data from state
     user_data = {
         "income": state["income"],
-        "target_home_id": state["target_home_id"],
         "credit_score": state["credit_score"],
-        "zip_code": state["zip_code"]
+        "zip_code": state["zip_code"],
+        "residential_units": state["residential_units"]
     }
     
     # Call the budgeting agent
@@ -23,6 +23,12 @@ async def run_budgeting_agent_node(state: PlannerState):
     
     # Store results in state
     state["budgeting_agent_results"] = budgeting_results
+    
+    # Extract primitive values for easy access
+    state["monthly_budget"] = budgeting_results.get("monthly_budget")
+    state["max_loan"] = budgeting_results.get("max_loan")
+    state["price_data"] = budgeting_results.get("price_data")
+    
     state["current_step"] = "budgeting_complete"
     
     return state

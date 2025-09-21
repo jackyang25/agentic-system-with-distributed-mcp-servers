@@ -2,7 +2,7 @@
 
 from langgraph.graph import StateGraph
 from .state import BudgetingState
-from .nodes import budget_calculation_node, loan_qualification_node
+from .nodes import budget_calculation_node, loan_qualification_node, price_data_query_node
 
 
 def initialize_graph() -> StateGraph:
@@ -12,11 +12,13 @@ def initialize_graph() -> StateGraph:
     # Add nodes
     graph.add_node("budget_calculation", budget_calculation_node)
     graph.add_node("loan_qualification", loan_qualification_node)
+    graph.add_node("price_data_query", price_data_query_node)
     
-    # Set up the workflow: budget calculation -> loan qualification
+    # Set up the workflow: budget calculation -> loan qualification -> average price query
     graph.set_entry_point("budget_calculation")
     graph.add_edge("budget_calculation", "loan_qualification")
-    graph.set_finish_point("loan_qualification")
+    graph.add_edge("loan_qualification", "price_data_query")
+    graph.set_finish_point("price_data_query")
         
     return graph
 
@@ -32,11 +34,15 @@ async def run_budgeting_agent(user_data):
     # Convert user_data to initial state
     initial_state = {
         "income": user_data["income"],
-        "target_home_id": user_data["target_home_id"],
+        "target_home_id": user_data.get("target_home_id", None),
         "credit_score": user_data["credit_score"],
         "zip_code": user_data["zip_code"],
+        "residential_units": user_data["residential_units"],
         "budget_result": None,
-        "loan_result": None
+        "loan_result": None,
+        "price_data": None,
+        "monthly_budget": None,
+        "max_loan": None
     }
     
     # Create and run the graph

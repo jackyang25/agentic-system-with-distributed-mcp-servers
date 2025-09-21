@@ -33,9 +33,9 @@ async def run_planner_agent(user_data):
     initial_state = {
         "current_step": "starting",
         "income": user_data["income"],
-        "target_home_id": user_data["target_home_id"],
         "credit_score": user_data["credit_score"],
         "zip_code": user_data["zip_code"],
+        "residential_units": user_data["residential_units"],
         "budgeting_agent_results": None,
         "geoscout_agent_results": None,
         "program_agent_results": None,

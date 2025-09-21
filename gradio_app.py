@@ -21,22 +21,35 @@ def format_planner_results(result):
         budget = result["budgeting_agent_results"]
         lines.append("<strong>Profile:</strong> " + f"Income: {_fmt_money(budget.get('income'))} | " + 
                     f"Credit: {budget.get('credit_score', 'N/A')} | " + 
-                    f"Home ID: {budget.get('target_home_id', 'N/A')} | " + 
                     f"Location: {budget.get('zip_code', 'N/A')}")
         lines.append("─" * 60)
         lines.append("")
 
-        budget_result = (budget.get('budget_result') or {}).get('budget') or {}
-        loan_result = (budget.get('loan_result') or {}).get('max_loan') or {}
+        # Collect all computed data
+        computed_data = []
         
-        financial_info = []
-        if budget_result.get('budget'):
-            financial_info.append(f"Yearly Budget: {_fmt_money(budget_result.get('budget'))}")
-        if loan_result.get('max_loan'):
-            financial_info.append(f"Max Loan: {_fmt_money(loan_result.get('max_loan'))}")
+        # Financial data - use primitive values from result
+        if result.get('monthly_budget'):
+            computed_data.append(f"Monthly Budget: {_fmt_money(result.get('monthly_budget'))}")
+        if result.get('max_loan'):
+            computed_data.append(f"Max Loan: {_fmt_money(result.get('max_loan'))}")
         
-        if financial_info:
-            lines.append("<strong>Financial:</strong> " + " | ".join(financial_info))
+        # Market data - use dictionary from result
+        price_data = result.get('price_data', {})
+        if price_data and isinstance(price_data, dict):
+            if price_data.get('average_sale_price'):
+                computed_data.append(f"Avg Price: {_fmt_money(price_data.get('average_sale_price'))}")
+            if price_data.get('min_sale_price'):
+                computed_data.append(f"Min Price: {_fmt_money(price_data.get('min_sale_price'))}")
+            if price_data.get('max_sale_price'):
+                computed_data.append(f"Max Price: {_fmt_money(price_data.get('max_sale_price'))}")
+            if price_data.get('total_properties'):
+                computed_data.append(f"Properties: {price_data.get('total_properties')}")
+            if price_data.get('residential_units'):
+                computed_data.append(f"Unit Type: {price_data.get('residential_units')}-unit")
+        
+        if computed_data:
+            lines.append("<strong>Computed Data:</strong> " + " | ".join(computed_data))
             lines.append("─" * 60)
             lines.append("")
 
@@ -50,12 +63,10 @@ def format_planner_results(result):
     return "\n".join(lines)
 
 # Main UI handler - validates inputs and calls the planner agent
-async def run_planner_with_ui(income, target_home_id, credit_score, zip_code, building_class, residential_units, gross_square_feet, year_built, current_debt):
+async def run_planner_with_ui(income, credit_score, who_i_am, state, what_looking_for, zip_code, building_class, residential_units, current_debt):
     try:
         if income is None or income == "":
             return "Error: Net Annual Income is required"
-        if target_home_id is None or target_home_id == "":
-            return "Error: Target Home ID is required"
         if credit_score is None or credit_score == "":
             return "Error: Credit Score is required"
         if zip_code is None or zip_code == "":
@@ -64,49 +75,45 @@ async def run_planner_with_ui(income, target_home_id, credit_score, zip_code, bu
             return "Error: Building Class is required"
         if residential_units is None or residential_units == "":
             return "Error: Residential Units is required"
-        if gross_square_feet is None or gross_square_feet == "":
-            return "Error: Gross Square Feet is required"
-        if year_built is None or year_built == "":
-            return "Error: Year Built is required"
         if current_debt is None or current_debt == "":
             return "Error: Current Debt is required"
         
         try:
             income_val = float(income)
-            target_home_id_val = int(target_home_id)
             credit_score_val = int(credit_score)
             residential_units_val = int(residential_units)
-            gross_square_feet_val = float(gross_square_feet)
-            year_built_val = int(year_built)
             current_debt_val = float(current_debt)
         except (ValueError, TypeError):
             return "Error: Invalid numeric values provided"
         
         if income_val <= 0:
             return "Error: Net Annual Income must be greater than 0"
-        if target_home_id_val <= 0:
-            return "Error: Target Home ID must be greater than 0"
         if credit_score_val < 300 or credit_score_val > 850:
             return "Error: Credit Score must be between 300 and 850"
         if residential_units_val <= 0:
             return "Error: Residential Units must be greater than 0"
-        if gross_square_feet_val <= 0:
-            return "Error: Gross Square Feet must be greater than 0"
-        if year_built_val < 1800 or year_built_val > 2024:
-            return "Error: Year Built must be between 1800 and 2024"
         if current_debt_val < 0:
             return "Error: Current Debt must be 0 or greater"
+        
+        # Convert selections to RAG keywords
+        rag_parts = []
+        if who_i_am:
+            rag_parts.extend(who_i_am)
+        if state and state != "ANY":
+            rag_parts.append(state)
+        if what_looking_for:
+            rag_parts.extend(what_looking_for)
+        
+        rag_keywords = ", ".join(rag_parts) if rag_parts else ""
         
         # Prepare data for the planner agent
         user_data = {
             "income": income_val,
-            "target_home_id": target_home_id_val,
             "credit_score": credit_score_val,
+            "rag_keywords": rag_keywords,
             "zip_code": str(zip_code),
             "building_class": str(building_class),
             "residential_units": residential_units_val,
-            "gross_square_feet": gross_square_feet_val,
-            "year_built": year_built_val,
             "current_debt": current_debt_val,
         }
         
@@ -169,9 +176,9 @@ def create_interface():
 
         /* Scroll and spacing for inner output */
         #outer-panel .output-markdown {
-            max-height: 1000px !important;
+            max-height: 1200px !important;
             overflow-y: auto !important;
-            height: 1000px !important;
+            height: 1200px !important;
             display: block !important;
             padding: 10px !important;
             border-radius: 8px !important;
@@ -214,12 +221,52 @@ def create_interface():
                 current_debt = gr.Number(label="Current Debt ($)", value=0, minimum=0, step=1000)
                 credit_score = gr.Number(label="Credit Score", value=720, minimum=300, maximum=850, step=10)
                 
-                # Property Information
-                target_home_id = gr.Number(label="Target Home ID", value=7, minimum=1, step=1)
+                # Location Information
+                state = gr.Dropdown(
+                    label="State",
+                    choices=[
+                        "ANY",
+                        "New York",
+                        "New Jersey",
+                        "Connecticut",
+                        "Pennsylvania"
+                    ],
+                    value="New York"
+                )
                 zip_code = gr.Textbox(label="Zip Code", value="10009")
+                
+                # Who I Am - RAG Keywords
+                who_i_am = gr.CheckboxGroup(
+                    label="Who I Am (check all that apply)",
+                    choices=[
+                        "Veteran",
+                        "Recent Graduate", 
+                        "First Time Home Buyer",
+                        "Low Income",
+                        "Senior Citizen",
+                        "Disabled"
+                    ],
+                    value=["First Time Home Buyer"]
+                )
+                
+                # What I'm Looking For - Multi-select
+                what_looking_for = gr.CheckboxGroup(
+                    label="What I'm Looking For (check all that apply)",
+                    choices=[
+                        "Down Payment Assistance",
+                        "Low Interest Rate",
+                        "Mortgage Assistance",
+                        "Renovation Programs",
+                        "Affordable Housing"
+                    ],
+                    value=["Down Payment Assistance"]
+                )
+                
+                # Property Information
                 building_class = gr.Dropdown(
                     label="Building Class",
                     choices=[
+                        "Any - All building types",
                         "A0 - Cape Cod one family home",
                         "A1 - One family attached home",
                         "A2 - One family semi-attached home", 
@@ -274,13 +321,11 @@ def create_interface():
                         "O8 - Office building (8+ stories)",
                         "O9 - Office building (9+ stories)"
                     ],
-                    value="A0 - Cape Cod one family home"
+                    value="Any - All building types"
                 )
                 
                 # Property Details
                 residential_units = gr.Number(label="Residential Units", value=1, minimum=1, step=1)
-                gross_square_feet = gr.Number(label="Gross Square Feet", value=1200, minimum=1, step=100)
-                year_built = gr.Number(label="Year Built", value=2000, minimum=1800, maximum=2024, step=1)
                 
                 analyze_btn = gr.Button("Analyze", variant="primary", size="lg")
 
@@ -292,7 +337,7 @@ def create_interface():
 
         # Connect the analyze button to the main handler
         analyze_btn.click(fn=run_planner_with_ui,
-                          inputs=[income, target_home_id, credit_score, zip_code, building_class, residential_units, gross_square_feet, year_built, current_debt],
+                          inputs=[income, credit_score, who_i_am, state, what_looking_for, zip_code, building_class, residential_units, current_debt],
                           outputs=output)
     return demo
 
@@ -308,11 +353,10 @@ async def startup():
 
 # API endpoint for external access
 @app.post("/analyze")
-async def analyze_endpoint(income: float, target_home_id: int, credit_score: int, zip_code: str):
+async def analyze_endpoint(income: float, credit_score: int, zip_code: str):
     try:
         user_data = {
             "income": income,
-            "target_home_id": target_home_id,
             "credit_score": credit_score,
             "zip_code": zip_code,
         }
@@ -328,3 +372,6 @@ app = gr.mount_gradio_app(app, demo, path="/")
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+# TODO: RAG program agent and PgVector table
+# TODO: Chatbot after analysis with memory of planner state and conversation

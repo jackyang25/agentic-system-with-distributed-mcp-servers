@@ -2,9 +2,9 @@
 
 def get_comprehensive_analysis_prompt(budgeting_results: dict) -> str:
     """Generate comprehensive LLM prompt for data formatting and analysis"""
-    # Extract the actual values from the nested structure
-    budget_value = budgeting_results.get('budget_result', {}).get('budget', {}).get('budget', 'N/A')
-    loan_value = budgeting_results.get('loan_result', {}).get('max_loan', {}).get('max_loan', 'N/A')
+    # Extract the actual values from the data structure
+    budget_value = budgeting_results.get('monthly_budget', 'N/A')
+    loan_value = budgeting_results.get('max_loan', 'N/A')
     
     return f"""
     You are a financial advisor helping someone with home buying. Based on their financial data below, provide a comprehensive analysis:
