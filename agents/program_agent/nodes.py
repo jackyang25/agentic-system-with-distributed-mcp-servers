@@ -1,47 +1,102 @@
-# Here we use the OpenAI model, ask about programs, and filter based on the user profile.
-from langchain_openai import ChatOpenAI
-from agents.program_agent.prompts import FUNDING_PROGRAM_PROMPT
+"""Nodes for the Program Agent workflow."""
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+from .state import ProgramAgentState
+from .prompts import format_user_profile, create_batch_eligibility_prompt, format_program_summary
+from utils.embedder import NYProgramsEmbedder
+from mcp_kit.tools import search_programs_rag
 
-async def fetch_government_programs(state):
-    profile = state.get("user_profile", {})
-    query = f"Find homebuyer programs for profile: {profile}"
-   
-  # Call LLM (you can keep it async if you want actual LLM responses)
-    _ = await llm.ainvoke(FUNDING_PROGRAM_PROMPT.format(query=query))
 
-    # --- MOCKED structured programs (replace with parsing of LLM response) ---
-    results = [
-        {
-            "program_name": "FHA Loan",
-            "eligibility": "Credit score ≥ 580, income limits apply",
-            "benefits": "Low down payment (3.5%)",
-            "source": "https://www.hud.gov/program_offices/housing/fhahistory",
-        },
-        {
-            "program_name": "USDA Rural Development Loan",
-            "eligibility": "Income ≤ 115% of area median, rural property",
-            "benefits": "Zero down payment, lower interest rates",
-            "source": "https://www.rd.usda.gov/programs-services/single-family-housing-guaranteed-loan-program",
-        },
-        {
-            "program_name": "VA Home Loan",
-            "eligibility": "Military service required",
-            "benefits": "No down payment, no PMI",
-            "source": "https://www.benefits.va.gov/homeloans/",
-        },
-    ]
+async def rag_search_programs_node(state: ProgramAgentState):
+    """Search for government programs using RAG"""
+    
+    # Build search query from user data
+    query_parts = []
+    
+    # Add who_i_am selections
+    if state.get("who_i_am"):
+        query_parts.extend(state["who_i_am"])
+    
+    # Add state
+    if state.get("state"):
+        query_parts.append(state["state"])
+    
+    # Add what_looking_for selections
+    if state.get("what_looking_for"):
+        query_parts.extend(state["what_looking_for"])
+    
+    # Combine into search query
+    search_query = " ".join(query_parts) if query_parts else "government assistance programs"
+    
+    try:
+        # Generate embedding for the search query using the embedder
+        embedder = NYProgramsEmbedder()
+        query_embedding = embedder.generate_embedding(search_query)
+        
+        # Call RAG search tool with the embedding
+        rag_result = await search_programs_rag.ainvoke({"embedding": query_embedding, "limit": 10})
+        
+        if "error" in rag_result:
+            state["program_matcher_results"] = []
+            print(f"RAG search error: {rag_result['error']}")
+        else:
+            # Extract programs from RAG result
+            programs = rag_result.get("programs", [])
+            state["program_matcher_results"] = programs
+            
+            # Log RAG results (limit to 1 element for brevity)
+            if programs:
+                print(f"RAG search result: {programs[:1]}")
+            else:
+                print("RAG search result: No programs found")
+        
+    except Exception as e:
+        state["program_matcher_results"] = []
+    
+    state["current_step"] = "search_complete"
+    return state
 
-    # --- Filter based on user profile ---
-    filtered = []
-    for prog in results:
-        if prog["program_name"] == "FHA Loan" and profile.get("credit_score", 0) < 580:
-            continue
-        if prog["program_name"] == "USDA Rural Development Loan" and profile.get("income", 0) > 60000:
-            continue
-        if prog["program_name"] == "VA Home Loan" and not profile.get("military", False):
-            continue
-        filtered.append(prog)
 
-    return {"program_matcher_results": filtered}
+async def filter_programs_node(state: ProgramAgentState):
+    """Filter programs using LLM to determine user eligibility"""
+    programs = state.get("program_matcher_results", [])
+    if not programs:
+        print("No programs to filter")
+        state["current_step"] = "filter_complete"
+        return state
+    
+    from langchain_openai import ChatOpenAI
+    
+    # Initialize LLM
+    model = ChatOpenAI(
+        model="gpt-4o-mini",
+        temperature=0,
+        timeout=30,
+        max_retries=2
+    )
+    
+    # Create user profile using prompt function
+    user_profile = format_user_profile(state)
+    
+    # Store programs as string for access outside prompt
+    programs_text = "\n\n".join([f"Program {i+1}:\n{format_program_summary(program)}" for i, program in enumerate(programs)])
+    
+    # Create batch prompt using prompt function
+    batch_prompt = create_batch_eligibility_prompt(user_profile, programs_text)
+    
+    try:
+        response = await model.ainvoke(batch_prompt)
+        decisions_text = response.content.strip()
+        
+        # Store LLM response as filtered programs (LLM already filtered)
+        state["filtered_programs"] = decisions_text
+        
+        # Also store the original programs as string for reference
+        state["programs_text"] = programs_text
+                
+    except Exception as e:
+        print(f"Error in batch filtering: {e}")
+        # Fallback: include all programs if batch processing fails
+        state["filtered_programs"] = programs_text
+    
+    state["current_step"] = "filter_complete"
+    return state

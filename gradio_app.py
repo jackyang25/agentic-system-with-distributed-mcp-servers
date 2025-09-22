@@ -3,6 +3,7 @@ import asyncio
 import gradio as gr
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from contextlib import asynccontextmanager
 from mcp_kit.tools import mcp_adapter
 from agents.planner_agent.graph import run_planner_agent  # Main logic entry point
 from langchain_openai import ChatOpenAI
@@ -19,52 +20,12 @@ def _fmt_money(x):
 
 # Formats the planner agent results for display
 def format_planner_results(result):
-    lines = []
-
-    if result.get("budgeting_agent_results"):
-        budget = result["budgeting_agent_results"]
-        lines.append("<strong>Profile:</strong> " + f"Income: {_fmt_money(budget.get('income'))} | " + 
-                    f"Credit: {budget.get('credit_score', 'N/A')} | " + 
-                    f"Location: {budget.get('zip_code', 'N/A')}")
-        lines.append("─" * 60)
-        lines.append("")
-
-        # Collect all computed data
-        computed_data = []
-        
-        # Financial data - use primitive values from result
-        if result.get('monthly_budget'):
-            computed_data.append(f"Monthly Budget: {_fmt_money(result.get('monthly_budget'))}")
-        if result.get('max_loan'):
-            computed_data.append(f"Max Loan: {_fmt_money(result.get('max_loan'))}")
-        
-        # Market data - use dictionary from result
-        price_data = result.get('price_data', {})
-        if price_data and isinstance(price_data, dict):
-            if price_data.get('average_sale_price'):
-                computed_data.append(f"Avg Price: {_fmt_money(price_data.get('average_sale_price'))}")
-            if price_data.get('min_sale_price'):
-                computed_data.append(f"Min Price: {_fmt_money(price_data.get('min_sale_price'))}")
-            if price_data.get('max_sale_price'):
-                computed_data.append(f"Max Price: {_fmt_money(price_data.get('max_sale_price'))}")
-            if price_data.get('total_properties'):
-                computed_data.append(f"Properties: {price_data.get('total_properties')}")
-            if price_data.get('residential_units'):
-                computed_data.append(f"Unit Type: {price_data.get('residential_units')}-unit")
-        
-        if computed_data:
-            lines.append("<strong>Computed Data:</strong> " + " | ".join(computed_data))
-            lines.append("─" * 60)
-            lines.append("")
-
+    # Return only the generated analysis from the agents
     analysis = result.get('final_analysis', 'No analysis available')
     if analysis and analysis != 'No analysis available':
-        lines.append("<strong>Analysis:</strong>")
-        lines.append(analysis)
+        return analysis
     else:
-        lines.append("<strong>Status:</strong> Analysis unavailable - please try again.")
-
-    return "\n".join(lines)
+        return "Analysis unavailable - please try again."
 
 # Chatbot function that uses analysis context
 async def chatbot_response(message, history, analysis_context):
@@ -140,22 +101,13 @@ async def run_planner_with_ui(income, credit_score, who_i_am, state, what_lookin
         if current_debt_val < 0:
             return "Error: Current Debt must be 0 or greater"
         
-        # Convert selections to RAG keywords
-        rag_parts = []
-        if who_i_am:
-            rag_parts.extend(who_i_am)
-        if state and state != "ANY":
-            rag_parts.append(state)
-        if what_looking_for:
-            rag_parts.extend(what_looking_for)
-        
-        rag_keywords = ", ".join(rag_parts) if rag_parts else ""
-        
         # Prepare data for the planner agent
         user_data = {
             "income": income_val,
             "credit_score": credit_score_val,
-            "rag_keywords": rag_keywords,
+            "who_i_am": who_i_am if who_i_am else [],
+            "state": state if state != "ANY" else None,
+            "what_looking_for": what_looking_for if what_looking_for else [],
             "zip_code": str(zip_code),
             "building_class": str(building_class),
             "residential_units": residential_units_val,
@@ -421,7 +373,7 @@ def create_interface():
                                       outputs=output)
 
             with gr.Tab("Chat"):
-                chatbot = gr.Chatbot(label="Chat with Assistant", height=400)
+                chatbot = gr.Chatbot(label="Chat with Assistant", height=400, type="messages")
                 chatbot_input = gr.Textbox(
                     label="Your question", 
                     placeholder="Ask me anything about your analysis...",
@@ -437,18 +389,27 @@ def create_interface():
                         return history, ""
                     
                     if not analysis_context or analysis_context == "No analysis available":
-                        history.append((message, "I don't have access to your analysis results yet. Please run the analysis first."))
+                        history.append({"role": "user", "content": message})
+                        history.append({"role": "assistant", "content": "I don't have access to your analysis results yet. Please run the analysis first."})
                         return history, ""
                     
                     # Add user message to history
-                    history.append((message, ""))
+                    history.append({"role": "user", "content": message})
                     
                     # Get bot response
                     try:
-                        response = asyncio.run(chatbot_response(message, history[:-1], analysis_context))
-                        history[-1] = (message, response)
+                        # Convert history to old format for the chatbot_response function
+                        old_format_history = []
+                        for msg in history[:-1]:  # Exclude the current user message
+                            if msg["role"] == "user":
+                                old_format_history.append((msg["content"], ""))
+                            elif msg["role"] == "assistant" and old_format_history:
+                                old_format_history[-1] = (old_format_history[-1][0], msg["content"])
+                        
+                        response = asyncio.run(chatbot_response(message, old_format_history, analysis_context))
+                        history.append({"role": "assistant", "content": response})
                     except Exception as e:
-                        history[-1] = (message, f"Error: {str(e)}")
+                        history.append({"role": "assistant", "content": f"Error: {str(e)}"})
                     
                     return history, ""
                 
@@ -467,15 +428,19 @@ def create_interface():
                 )
     return demo
 
-# FastAPI app setup
-app = FastAPI(title="MAREA API")
-
-# Initialize MCP connections on startup
-@app.on_event("startup")
-async def startup():
+# Lifespan event handler for startup/shutdown
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
     await mcp_adapter.connect_all()
     print(await mcp_adapter.check_running())
     print("MCP connections established")
+    yield
+    # Shutdown (if needed)
+    pass
+
+# FastAPI app setup
+app = FastAPI(title="MAREA API", lifespan=lifespan)
 
 # API endpoint for external access
 @app.post("/analyze")

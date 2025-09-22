@@ -3,6 +3,7 @@
 from .state import PlannerState
 from .prompts import get_comprehensive_analysis_prompt
 from agents.budgeting_agent.graph import run_budgeting_agent
+from agents.program_agent.graph import run_program_agent
 
 
 async def run_budgeting_agent_node(state: PlannerState):
@@ -34,6 +35,35 @@ async def run_budgeting_agent_node(state: PlannerState):
     return state
 
 
+async def run_program_agent_node(state: PlannerState):
+    """Call the program agent and store results in state"""
+    current_step = state.get('current_step', 'unknown')
+    print(f"STEP: {current_step} -> Calling program agent...")
+    
+    # Extract user data from state for program agent (include more context for LLM filtering)
+    user_data = {
+        "who_i_am": state.get("who_i_am", []),
+        "state": state.get("state"),
+        "what_looking_for": state.get("what_looking_for", []),
+        "income": state.get("income"),
+        "credit_score": state.get("credit_score"),
+        "zip_code": state.get("zip_code"),
+        "building_class": state.get("building_class"),
+        "current_debt": state.get("current_debt"),
+        "residential_units": state.get("residential_units")
+    }
+    
+    # Call the program agent
+    program_results = await run_program_agent(user_data)
+    
+    # Store results in planner state
+    state["program_agent_results"] = program_results
+    
+    state["current_step"] = "program_agent_complete"
+    
+    return state
+
+
 async def synthesis_node(state: PlannerState):
     """Synthesize all agent results into final analysis"""
     current_step = state.get('current_step', 'unknown')
@@ -41,8 +71,7 @@ async def synthesis_node(state: PlannerState):
     
     from langchain_openai import ChatOpenAI
     
-    # For now, just return the budgeting results as analysis
-    # You can expand this later to include other agents
+    # Get budgeting results to check if we have data
     budgeting_results = state.get("budgeting_agent_results", {})
     
     if budgeting_results:
@@ -55,7 +84,7 @@ async def synthesis_node(state: PlannerState):
         )
         
         # Get the comprehensive analysis prompt from prompts.py
-        analysis_prompt = get_comprehensive_analysis_prompt(budgeting_results)
+        analysis_prompt = get_comprehensive_analysis_prompt(state)
         
         try:
             response = await model.ainvoke(analysis_prompt)

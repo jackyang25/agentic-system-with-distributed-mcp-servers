@@ -34,3 +34,9 @@ async def query_price_data_by_zip_and_units(zip_code: str, residential_units: in
     result = await mcp_adapter.supabase.query_price_data_by_zip_and_units(zip_code, residential_units)
     return result
 
+@tool
+async def search_programs_rag(embedding: list, limit: int = 10) -> dict:
+    """Search government programs using vector similarity search with RAG using embedding"""
+    result = await mcp_adapter.supabase.search_programs_rag(embedding, limit)
+    return result
+

@@ -109,6 +109,105 @@ class SupabaseClient:
         # Parse and return clean data
         return self._parse_price_data(result)
 
+    async def search_programs_rag(self, embedding, limit=10):
+        """Search government programs using vector similarity search with RAG"""
+        if not self.session:
+            raise RuntimeError("Not connected. Call connect() first.")
+        
+        import json
+        
+        # Convert embedding to JSON string for SQL query
+        embedding_str = json.dumps(embedding)
+        
+        # Query the nyc_programs_rag table using vector similarity
+        query_sql = f"""
+        SELECT 
+            program_name,
+            formatted_text,
+            jurisdiction,
+            assistance_type,
+            max_benefit,
+            eligibility,
+            source,
+            embedding_vector <-> '{embedding_str}' as distance
+        FROM public.nyc_programs_rag 
+        ORDER BY embedding_vector <-> '{embedding_str}'
+        LIMIT {limit};
+        """
+        
+        # Execute the query
+        result = await self.session.call_tool("execute_sql", {
+            "query": query_sql
+        })
+        
+        # Parse and return clean data
+        return self._parse_programs_rag_results(result)
+
+    def _parse_programs_rag_results(self, result):
+        """Parse MCP result and return clean program search data"""
+        if not result or not hasattr(result, 'content') or not result.content:
+            return {"error": "No results found"}
+            
+        import json
+        try:
+            # The result.content is a list of TextContent objects
+            if not isinstance(result.content, list) or len(result.content) == 0:
+                return {"error": "No results found"}
+                
+            content_text = result.content[0].text
+            if not isinstance(content_text, str):
+                return {"error": "Invalid response format"}
+                
+            # Extract the JSON part between the boundaries
+            start_marker = '<untrusted-data-'
+            end_marker = '</untrusted-data-'
+            start_idx = content_text.find(start_marker)
+            end_idx = content_text.find(end_marker)
+            
+            if start_idx == -1 or end_idx == -1 or start_idx >= end_idx:
+                return {"error": "No data found in response"}
+                
+            # Find the JSON array within the boundaries
+            json_start = content_text.find('[', start_idx)
+            json_end = content_text.find(']', json_start)
+            
+            if json_start == -1 or json_end == -1 or json_start >= json_end:
+                return {"error": "No JSON data found"}
+                
+            json_str = content_text[json_start:json_end + 1]
+            # Unescape the JSON string to handle escaped quotes
+            json_str = json_str.replace('\\"', '"')
+            raw_programs = json.loads(json_str)
+            
+            if not isinstance(raw_programs, list):
+                return {"error": "Invalid data format"}
+            
+            # Format results with rank as key
+            programs = []
+            for i, program in enumerate(raw_programs):
+                if isinstance(program, dict):
+                    programs.append({
+                        "rank": i + 1,
+                        "program_name": program.get("program_name", ""),
+                        "formatted_text": program.get("formatted_text", ""),
+                        "jurisdiction": program.get("jurisdiction", ""),
+                        "assistance_type": program.get("assistance_type", ""),
+                        "max_benefit": program.get("max_benefit", ""),
+                        "eligibility": program.get("eligibility", ""),
+                        "source": program.get("source", ""),
+                        "similarity_score": 1 - float(program.get("distance", 1))  # Convert distance to similarity
+                    })
+            
+            return {
+                "programs": programs,
+                "total_found": len(programs)
+            }
+            
+        except (json.JSONDecodeError, KeyError, IndexError, TypeError, AttributeError) as e:
+            print(f"DEBUG: Program RAG search parsing failed with error: {e}")
+            print(f"DEBUG: Content text: {content_text[:200]}...")
+            return {"error": f"Failed to parse results: {str(e)}"}
+
     def _parse_property_data(self, result):
         """Parse MCP result and return clean property data"""
         if not result or not hasattr(result, 'content') or not result.content:
