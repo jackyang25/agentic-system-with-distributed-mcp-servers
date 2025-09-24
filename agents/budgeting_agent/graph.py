@@ -1,38 +1,54 @@
 """Graph for the Budgeting Agent workflow."""
 
+from typing import Any
+
 from langgraph.graph import StateGraph
-from .state import BudgetingState
-from .nodes import budget_calculation_node, loan_qualification_node, price_data_query_node
+from langgraph.graph.state import CompiledStateGraph
+
+from agents.budgeting_agent.nodes import (
+    budget_calculation_node,
+    loan_qualification_node,
+    price_data_query_node,
+)
+from agents.budgeting_agent.state import BudgetingState
 
 
-def initialize_graph() -> StateGraph:
+def initialize_graph() -> StateGraph[
+    BudgetingState, None, BudgetingState, BudgetingState
+]:
     """Initialize the budgeting agent graph with model and tools."""
-    graph = StateGraph(BudgetingState)
-    
+    graph: StateGraph[BudgetingState, None, BudgetingState, BudgetingState] = (
+        StateGraph(state_schema=BudgetingState)
+    )
+
     # Add nodes
-    graph.add_node("budget_calculation", budget_calculation_node)
-    graph.add_node("loan_qualification", loan_qualification_node)
-    graph.add_node("price_data_query", price_data_query_node)
-    
+    graph.add_node(node="budget_calculation", action=budget_calculation_node)
+    graph.add_node(node="loan_qualification", action=loan_qualification_node)
+    graph.add_node(node="price_data_query", action=price_data_query_node)
+
     # Set up the workflow: budget calculation -> loan qualification -> average price query
-    graph.set_entry_point("budget_calculation")
-    graph.add_edge("budget_calculation", "loan_qualification")
-    graph.add_edge("loan_qualification", "price_data_query")
-    graph.set_finish_point("price_data_query")
-        
+    graph.set_entry_point(key="budget_calculation")
+    graph.add_edge(start_key="budget_calculation", end_key="loan_qualification")
+    graph.add_edge(start_key="loan_qualification", end_key="price_data_query")
+    graph.set_finish_point(key="price_data_query")
+
     return graph
 
 
-def compile_graph():
+def compile_graph() -> CompiledStateGraph[
+    BudgetingState, None, BudgetingState, BudgetingState
+]:
     """Compile the graph into a runnable agent"""
-    graph = initialize_graph()
+    graph: StateGraph[BudgetingState, None, BudgetingState, BudgetingState] = (
+        initialize_graph()
+    )
     return graph.compile()
 
 
-async def run_budgeting_agent(user_data):
+async def run_budgeting_agent(user_data: dict[str, Any]) -> dict[str, Any] | Any:
     """Entry point to run the budgeting agent with user data"""
     # Convert user_data to initial state
-    initial_state = {
+    initial_state: dict[str, Any] = {
         "income": user_data["income"],
         "target_home_id": user_data.get("target_home_id", None),
         "credit_score": user_data["credit_score"],
@@ -42,11 +58,13 @@ async def run_budgeting_agent(user_data):
         "loan_result": None,
         "price_data": None,
         "monthly_budget": None,
-        "max_loan": None
+        "max_loan": None,
     }
-    
+
     # Create and run the graph
-    agent = compile_graph()
-    result = await agent.ainvoke(initial_state)
-    
+    agent: CompiledStateGraph[BudgetingState, None, BudgetingState, BudgetingState] = (
+        compile_graph()
+    )
+    result: dict[str, Any] | Any = await agent.ainvoke(input=initial_state)
+
     return result

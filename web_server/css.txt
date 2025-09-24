@@ -1,0 +1,103 @@
+/* LEFT PANEL styling */
+#left-panel {
+    background-color: #1a1a1a !important;
+    color: #6b7280 !important;
+    font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
+    padding: 20px !important;
+    border: 1px solid #333 !important;
+    border-radius: 8px !important;
+    height: 1200px !important;
+}
+
+/* remove grey background from default inner form containers */
+#left-panel .gr-box,
+#left-panel .gr-panel {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* RIGHT PANEL styling */
+#outer-panel {
+    height: 1200px !important;
+    overflow-y: auto !important;
+    background-color: #1a1a1a !important;
+    color: #6b7280 !important;
+    font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
+    padding: 20px !important;
+    border: 1px solid #333 !important;
+    border-radius: 8px !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+/* INNER OUTPUT: remove extra border */
+#outer-panel .output-markdown,
+#outer-panel .gradio-markdown,
+#outer-panel .gradio-markdown .markdown,
+#outer-panel .output-markdown .markdown,
+#outer-panel .output-markdown .gr-box,
+#outer-panel .output-markdown .gr-panel {
+    border: none !important;
+    box-shadow: none !important;
+    background-color: #1a1a1a !important;
+    color: #6b7280 !important;
+}
+
+/* Scroll and spacing for inner output */
+#outer-panel .output-markdown {
+    max-height: 1000px !important;
+    max-height: 1200px !important;
+    overflow-y: auto !important;
+    height: 1000px !important;
+    height: 1200px !important;
+    display: block !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+}
+
+/* Tight text alignment inside */
+#outer-panel .output-markdown .markdown {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.gradio-row { align-items: flex-start !important; }
+.gradio-row input, .gradio-row select, .gradio-row textarea, .gradio-row label {
+    font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
+}
+.gradio-column:first-child input, .gradio-column:first-child select, .gradio-column:first-child textarea {
+    border-radius: 6px !important;
+}
+
+/* Spinner */
+.rotating-squares { position: relative; width: 50px; height: 50px; margin: 200px auto 30px auto; }
+.square1, .square2 {
+    position: absolute; top: 0; left: 0; width: 50px; height: 50px;
+    border: 2px dashed #6b7280; background-color: transparent;
+}
+.square2 { transform: translate(5px, 5px); }
+.square1 { animation: rotate-clockwise 3s linear infinite; }
+.square2 { animation: rotate-counter-clockwise 3s linear infinite; }
+@keyframes rotate-clockwise { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
+@keyframes rotate-counter-clockwise { from { transform: rotate(0deg);} to { transform: rotate(-360deg);} }
+
+/* GitHub logo alignment fix */
+.gradio-markdown h1 {
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    height: auto !important;
+}
+.gradio-markdown h1 span {
+    display: inline-flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+}
+.gradio-markdown h1 svg {
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 8px !important;
+    flex-shrink: 0 !important;
+    vertical-align: middle !important;
+    display: inline-block !important;
+}

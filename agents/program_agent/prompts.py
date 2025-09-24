@@ -1,6 +1,7 @@
 """Prompts for the Program Agent workflow."""
 
-def format_user_profile(state):
+
+def format_user_profile(state) -> str:
     """Format user profile for LLM filtering"""
     who_i_am = state.get("who_i_am", [])
     state_location = state.get("state", "")
@@ -10,11 +11,11 @@ def format_user_profile(state):
     building_class = state.get("building_class")
     current_debt = state.get("current_debt")
     residential_units = state.get("residential_units")
-    
+
     return f"""
     User Profile:
-    - Identity/Status: {', '.join(who_i_am) if who_i_am else 'Not specified'}
-    - State: {state_location if state_location else 'Not specified'}
+    - Identity/Status: {", ".join(who_i_am) if who_i_am else "Not specified"}
+    - State: {state_location if state_location else "Not specified"}
     - Income: ${income:,.0f} annually
     - Credit Score: {credit_score}
     - Zip Code: {zip_code}
@@ -23,19 +24,21 @@ def format_user_profile(state):
     - Residential Units: {residential_units}
     """
 
-def format_program_summary(program):
+
+def format_program_summary(program) -> str:
     """Format program details for LLM filtering"""
     return f"""
-    Program: {program.get('program_name', '')}
-    Eligibility: {program.get('eligibility', '')}
-    Assistance Type: {program.get('assistance_type', '')}
-    Jurisdiction: {program.get('jurisdiction', '')}
-    Benefits: {program.get('max_benefit', '')}
+    Program: {program.get("program_name", "")}
+    Eligibility: {program.get("eligibility", "")}
+    Assistance Type: {program.get("assistance_type", "")}
+    Jurisdiction: {program.get("jurisdiction", "")}
+    Benefits: {program.get("max_benefit", "")}
     """
 
-def create_batch_eligibility_prompt(user_profile, programs_text):
+
+def create_batch_eligibility_prompt(user_profile, programs_text) -> str:
     """Create the LLM prompt for batch program eligibility filtering"""
-    
+
     return f"""
     You are an expert in government assistance programs. Evaluate the programs below for user eligibility.
     

@@ -1,11 +1,21 @@
 """Run the Program Agent."""
-import asyncio
-from agents.program_agent.graph import build_program_graph
+
+import pytest
+from langgraph.graph.state import CompiledStateGraph
+
+from agents.program_agent.graph import compile_graph
+from agents.program_agent.state import ProgramAgentState
+from utils.convenience import load_secrets
+
+load_secrets()
 
 
-async def run_agent():
+@pytest.mark.anyio
+async def test_run_agent() -> None:
     """Run the program agent with a sample user profile."""
-    graph = build_program_graph()
+    graph: CompiledStateGraph[
+        ProgramAgentState, None, ProgramAgentState, ProgramAgentState
+    ] = compile_graph()
 
     # User input profile
     initial_state = {
@@ -21,33 +31,13 @@ async def run_agent():
         },
         "program_matcher_results": [],
         "error_count": 0,
-        "session_id": "demo-session"
+        "session_id": "demo-session",
     }
-    
-    final_state = await graph.ainvoke(initial_state)
+
+    final_state = await graph.ainvoke(input=initial_state)
 
     print("\n🏡 Available Funding Programs:\n")
     for prog in final_state.get("program_matcher_results", []):
-        print(f"- {prog['program_name']}: {prog['benefits']} (Source: {prog['source']})")
-
-
-async def visualize_graph():
-    """Export the Program Agent workflow graph as PNG."""
-    graph = build_program_graph()
-    compiled = graph.compile()
-    compiled.get_graph().draw_mermaid_png("program_agent_graph.png")
-    print("📊 Program Agent workflow graph saved as program_agent_graph.png")
-
-
-if __name__ == "__main__":
-    # 👉 Choose which one you want to run:
-    asyncio.run(run_agent())       # run the agent with profile
-    # asyncio.run(visualize_graph()) # uncomment to export graph
-
-
-
-    
-
-
-
-
+        print(
+            f"- {prog['program_name']}: {prog['benefits']} (Source: {prog['source']})"
+        )

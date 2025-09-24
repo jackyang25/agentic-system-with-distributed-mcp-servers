@@ -24,3 +24,8 @@ gradio_client = ">=1.13.1,<2.0.0"
 fastapi = ">=0.100.0,<1.0.0"
 uvicorn = ">=0.20.0,<1.0.0"
 openai = ">=1.0.0,<2.0.0"
+remote-pdb = "^2.1.0"
+langchain-google-genai = "^2.1.12"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

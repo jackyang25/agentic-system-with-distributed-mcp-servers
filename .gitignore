@@ -24,6 +24,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.undodir/
+*.ruff_cache/
 
 # Virtual Environment
 .venv/
