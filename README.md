@@ -1,6 +1,6 @@
 # Hey! Glad you're here... 👋
 
-_About: Multi-agent homebuyer assistance system with financial analysis and neighborhood matching._  
+_Multi-agent homebuyer assistance system with financial analysis and neighborhood matching._  
 **Disclaimer: This project is for educational purposes only. It does not provide financial advice.**
 
 ---
