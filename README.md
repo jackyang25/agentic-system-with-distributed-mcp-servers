@@ -48,7 +48,9 @@ flowchart TD
   A --> B[Async. Budget Agent]
   A --> C[Async. Program Agent]
   A --> D[Async. GeoScout Agent]
-  A --> E[Final Synthesis & Output]
+  B --> E[Final Synthesis & Output]
+  C --> E[Final Synthesis & Output]
+  D --> E[Final Synthesis & Output]
 ```
 
 ### Sequential Orchestration
