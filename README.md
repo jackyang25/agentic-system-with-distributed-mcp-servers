@@ -45,10 +45,10 @@ The Planner Agent orchestrates a sequential workflow through specialized agents:
 ```mermaid
 flowchart TD
   F[Entry Point] --> A[Planner Agent]
-  A --> B[1. Budget Agent]
-  A --> C[2. Program Agent]
-  A --> D[3. GeoScout Agent]
-  A --> E[4. Final Synthesis & Output]
+  A --> B[Async. Budget Agent]
+  A --> C[Async. Program Agent]
+  A --> D[Async. GeoScout Agent]
+  A --> E[Final Synthesis & Output]
 ```
 
 ### Sequential Orchestration
