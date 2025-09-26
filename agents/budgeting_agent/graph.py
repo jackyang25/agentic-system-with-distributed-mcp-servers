@@ -59,6 +59,7 @@ async def run_budgeting_agent(user_data: dict[str, Any]) -> dict[str, Any] | Any
         "price_data": None,
         "monthly_budget": None,
         "max_loan": None,
+        "usage_metadata": {},
     }
 
     # Create and run the graph

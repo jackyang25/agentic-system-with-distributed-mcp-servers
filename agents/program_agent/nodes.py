@@ -4,6 +4,7 @@ from logging import Logger
 from typing import Any
 
 from langchain_core.messages.base import BaseMessage
+from langchain_openai import ChatOpenAI
 
 from agents.program_agent.prompts import (
     create_batch_eligibility_prompt,
@@ -14,6 +15,7 @@ from agents.program_agent.state import ProgramAgentState
 from mcp_kit.tools import search_programs_rag
 from utils.convenience import get_logger, get_openai_model
 from utils.embedder import NYProgramsEmbedder
+from utils.token_tracking import token_usage_tracking
 
 logger: Logger = get_logger(name=__name__)
 
@@ -82,11 +84,6 @@ async def filter_programs_node(state: ProgramAgentState) -> ProgramAgentState:
         state["current_step"] = "filter_complete"
         return state
 
-    from langchain_openai import ChatOpenAI
-
-    # Initialize LLM
-    model = ChatOpenAI(model=openai_model, temperature=0, timeout=30, max_retries=2)
-
     # Create user profile using prompt function
     user_profile: str = format_user_profile(state=state)
 
@@ -104,7 +101,13 @@ async def filter_programs_node(state: ProgramAgentState) -> ProgramAgentState:
     )
 
     try:
+        # Initialize LLM
+        model = ChatOpenAI(model=openai_model, temperature=0, timeout=30, max_retries=2)
         response: BaseMessage = await model.ainvoke(input=batch_prompt)
+        updated_token_usage: dict[str, Any] = token_usage_tracking(
+            token_history=state.get("usage_metadata"),
+            usage_data=response.usage_metadata,
+        )
         decisions_text: str = response.content.strip()
 
         # Store LLM response as filtered programs (LLM already filtered)
@@ -112,6 +115,9 @@ async def filter_programs_node(state: ProgramAgentState) -> ProgramAgentState:
 
         # Also store the original programs as string for reference
         state["programs_text"] = programs_text
+
+        # Update token usage in state
+        state["usage_metadata"] = updated_token_usage
 
     except Exception as e:
         logger.info(f"Error in batch filtering: {e}")

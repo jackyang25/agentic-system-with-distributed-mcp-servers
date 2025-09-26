@@ -19,6 +19,19 @@ class CrimeStructure(BaseModel):
     )
 
 
+class SchoolStructure(BaseModel):
+    school_score: int = Field(
+        description="The score of the school district for the area"
+    )
+    exam_scores: int = Field(description="The exam scores for the school district")
+    graduation_percentage: float = Field(
+        description="The graduation percentage for the school district"
+    )
+    school_summary: str = Field(
+        description="A summary of the school district in the area"
+    )
+
+
 def get_transit_score_prompt(zipcode: int, commute_result: dict[str, Any]) -> str:
     """Prompt for transit score node"""
     return f"""
@@ -56,6 +69,34 @@ def get_crime_score_prompt(zipcode: int) -> str:
     {{
         "crime_score": int,  # A score from 1 (very low) to 4 (high)
         "crime_summary": str  # A brief summary of the crime situation in the area
+    }}
+    """
+
+
+def get_school_score_prompt(zipcode: int) -> str:
+    """Prompt for school rate node"""
+    return f"""
+    Zip Code: {zipcode}
+
+    Provide a summary of the quality of the K-12 schools within the {zipcode} area.
+    Find school exam averages for the zip code {zipcode}.
+    Find graduation rates for the zip code {zipcode}.
+    Include a summary of the school district in the area.
+    Return a score from 1 (very low) to 4 (high) based on the school exam grades, graduation rate, and school district summary.
+    Cite the source. If no data exists, say so.
+
+    Use the school index:
+    1 - Very Low
+    2 - Low
+    3 - Moderate
+    4 - High
+
+    Return your response in the following JSON format:
+    {{
+        "school_score": int,  # A score from 1 (very low) to 4 (high)
+        "school_summary": str,  # A brief summary of the school district in the area
+        "exam_scores": int,  # Average exam scores for the area
+        "graduation_percentage": float  # Student graduation percentage for the area
     }}
     """
 

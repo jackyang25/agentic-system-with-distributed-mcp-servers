@@ -27,4 +27,4 @@ class ProgramAgentState(TypedDict):
     filtered_programs: Optional[str]  # LLM filtered response as string
 
     # Workflow control
-    current_step: str
+    usage_metadata: Optional[dict[str, Any]]

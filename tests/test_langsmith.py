@@ -11,6 +11,9 @@ def test_langsmith_connection(langsmith_client):
     """Test case for langsmith integration."""
     try:
         projects = list(langsmith_client.list_projects())
+        import pdb
+
+        pdb.set_trace()
         assert projects is not None, (
             "No projects returned. Connection might not be established."
         )

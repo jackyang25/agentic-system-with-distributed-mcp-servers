@@ -23,3 +23,6 @@ class BudgetingState(TypedDict):
     # Extracted values for easy access
     monthly_budget: Optional[float]
     max_loan: Optional[float]
+
+    # Usage metadata
+    usage_metadata: Optional[dict[str, Any]]

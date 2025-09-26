@@ -1,6 +1,6 @@
 """State for the GeoScout agent workflow."""
 
-from typing import Optional
+from typing import Any, Optional
 
 from typing_extensions import TypedDict
 
@@ -8,7 +8,6 @@ from typing_extensions import TypedDict
 class GeoScoutState(TypedDict):
     """State definition for the GeoScout Agent workflow."""
 
-    current_step: str
     step_count: int
     error_count: int
 
@@ -23,5 +22,14 @@ class GeoScoutState(TypedDict):
     crime_summary: str
     crime_score: int
 
+    # School node output
+    school_summary: str
+    exam_scores: int
+    graduation_percentage: float
+    school_score: int
+
     # Synthesizer node output
     total_summary: str
+
+    # Usage metadata
+    usage_metadata: Optional[dict[str, Any]]

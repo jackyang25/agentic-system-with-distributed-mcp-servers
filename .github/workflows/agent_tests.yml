@@ -1,5 +1,5 @@
 ---
-name: Agent Tests
+name: MCP Tests
 
 on:
   push:
@@ -7,8 +7,26 @@ on:
       - "main"
 
 jobs:
-  agent_tests:
+  mcp_tests:
     runs-on: "ubuntu-latest"
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+      WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+      GNEWS_API_KEY: ${{ secrets.GNEWS_API_KEY }}
+      LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+      LANGSMITH_TRACING: ${{ secrets.LANGSMITH_TRACING }}
+      LANGSMITH_PROJECT: ${{ secrets.LANGSMITH_PROJECT }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      READONLY_DATABASE_URL: ${{ secrets.READONLY_DATABASE_URL }}
     steps:
       - name: "Checkout code"
         uses: "actions/checkout@v4"
@@ -28,5 +46,5 @@ jobs:
       - name: "Install dependencies"
         run: "poetry install --no-root"
 
-      - name: "Test Agent Imports"
-        run: "poetry run python -c 'from agents.finance_agent import *; from agents.geoscout_agent import *; from agents.program_agent import *; print(\"All agents import successfully\")'"
+      - name: "MCP Tests"
+        run: "poetry run python -m pytest tests"

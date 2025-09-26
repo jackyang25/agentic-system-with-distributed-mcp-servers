@@ -52,6 +52,7 @@ async def run_program_agent(user_data) -> Any:
         "residential_units": user_data["residential_units"],
         "program_matcher_results": [],
         "current_step": "search_programs",
+        "usage_metadata": {},
     }
 
     # Create and run the graph

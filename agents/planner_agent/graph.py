@@ -2,37 +2,26 @@
 
 from typing import Any
 
-from langgraph.graph import StateGraph
+from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from agents.planner_agent.nodes import (
-    run_budgeting_agent_node,
-    run_geoscout_agent_node,
-    run_program_agent_node,
+    run_nodes,
     synthesis_node,
 )
 from agents.planner_agent.state import PlannerState
 
 
 def initialize_graph() -> StateGraph:
-    """Initialize the planner agent graph with sequential agent calls."""
     graph: StateGraph[PlannerState, None, PlannerState, PlannerState] = StateGraph(
         state_schema=PlannerState
     )
-
-    # Add nodes for each agent
-    graph.add_node(node="run_budgeting_agent", action=run_budgeting_agent_node)
-    graph.add_node(node="run_program_agent", action=run_program_agent_node)
-    graph.add_node(node="run_geoscout_agent", action=run_geoscout_agent_node)
+    graph.add_node(node="run_nodes", action=run_nodes)
     graph.add_node(node="synthesis", action=synthesis_node)
 
-    # Set up the workflow: budgeting -> program agent -> synthesis
-    graph.set_entry_point(key="run_budgeting_agent")
-    graph.add_edge(start_key="run_budgeting_agent", end_key="run_program_agent")
-    graph.add_edge(start_key="run_program_agent", end_key="run_geoscout_agent")
-    graph.add_edge(start_key="run_geoscout_agent", end_key="synthesis")
-    graph.set_finish_point(key="synthesis")
-
+    graph.add_edge(start_key=START, end_key="run_nodes")
+    graph.add_edge(start_key="run_nodes", end_key="synthesis")
+    graph.add_edge(start_key="synthesis", end_key=END)
     return graph
 
 
@@ -64,6 +53,7 @@ async def run_planner_agent(user_data) -> dict[str, Any] | Any:
         "geoscout_agent_results": None,
         "program_agent_results": None,
         "final_analysis": None,
+        "usage_metadata": {},
     }
 
     # Create and run the graph

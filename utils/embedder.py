@@ -9,42 +9,48 @@ for use with pgvector in Supabase.
 import csv
 import json
 import os
-from pathlib import Path
 from typing import Any
 
 import openai
-from dotenv import load_dotenv
 from openai.types.create_embedding_response import CreateEmbeddingResponse
 
+from utils.convenience import load_secrets
+
 # Load environment variables
-load_dotenv()
+load_secrets()
 
 
 class NYProgramsEmbedder:
-    def __init__(self, openai_api_key: str = None) -> None:
-        """Initialize the embedder with OpenAI API key."""
-        self.api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+    def __init__(self) -> None:
+        """Initialize the embedder."""
+        self.api_key: str = os.getenv(key="OPENAI_API_KEY")
         if not self.api_key:
             raise ValueError(
                 "OpenAI API key not found. Set OPENAI_API_KEY environment variable."
             )
 
         openai.api_key = self.api_key
-        self.embedding_model = "text-embedding-3-small"  # Cost-effective model
+        self.embedding_model: str = "text-embedding-3-small"  # Cost-effective model
 
     def format_program_for_embedding(self, program: dict[str, Any]) -> str:
         """Format a program dictionary into structured text for embedding."""
-        return f"""Program: {program.get("Program Name", "")}
+
+        format_program_string: str = f"""Program: {program.get("Program Name", "")}
 Type: {program.get("Assistance Type", "")}
 Location: {program.get("Jurisdiction", "")}
 Benefit: {program.get("Max Benefit", "")}"""
 
+        return format_program_string
+
     def format_query_for_embedding(self, query: str) -> str:
         """Format a user query to match the program structure."""
-        return f"""Program: {query}
+
+        embedding_query_string: str = f"""Program: {query}
 Type: 
 Location: 
 Benefit: """
+
+        return embedding_query_string
 
     def generate_embedding(self, text: str) -> list[float]:
         """Generate embedding for the given text."""
@@ -59,6 +65,8 @@ Benefit: """
 
     def load_programs(self, json_file_path: str) -> list[dict[str, Any]]:
         """Load programs from JSON file."""
+        if not os.path.exists(json_file_path):
+            raise FileNotFoundError(f"File not found: {json_file_path}")
         with open(file=json_file_path, mode="r", encoding="utf-8") as f:
             return json.load(f)
 
@@ -121,7 +129,7 @@ Benefit: """
 
             # Write data
             for program in processed_programs:
-                original: Any = program["original_data"]
+                original: dict[str, Any] = program["original_data"]
                 writer.writerow(
                     row=[
                         program["program_id"],
@@ -155,48 +163,3 @@ Benefit: """
                 )
 
         print(f"Saved embeddings to {output_file}")
-
-
-def main() -> None:
-    """Main function to run the embedder."""
-    # Paths
-    script_dir: Path = Path(__file__).parent
-    json_file: Path = script_dir / "ny_programs.json"
-    output_csv: Path = script_dir / "ny_programs_embeddings.csv"
-    embeddings_csv: Path = script_dir / "ny_programs_embeddings_only.csv"
-
-    # Check if JSON file exists
-    if not json_file.exists():
-        print(f"Error: {json_file} not found!")
-        return
-
-    try:
-        # Initialize embedder
-        embedder = NYProgramsEmbedder()
-
-        # Load programs
-        print("Loading programs from JSON...")
-        programs = embedder.load_programs(json_file_path=str(json_file))
-
-        # Process programs
-        processed_programs = embedder.process_programs(programs=programs)
-
-        # Save results
-        embedder.save_to_csv(
-            processed_programs=processed_programs, output_file=str(output_csv)
-        )
-        embedder.save_embeddings_only(
-            processed_programs=processed_programs, output_file=str(embeddings_csv)
-        )
-
-        print("\nEmbedding generation complete!")
-        print(f"Full data: {output_csv}")
-        print(f"Embeddings only: {embeddings_csv}")
-        print(f"Total programs processed: {len(processed_programs)}")
-
-    except Exception as e:
-        print(f"Error: {e}")
-
-
-if __name__ == "__main__":
-    main()

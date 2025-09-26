@@ -71,9 +71,9 @@ async def run_planner_with_ui(
     what_looking_for: list[str],
     zip_code: str,
     building_class: str,
-    residential_units: int,
     current_debt: int,
 ) -> Any:
+    residential_units = 1
     try:
         if income is None or income == "":
             return "Error: Gross Annual Income is required"
@@ -83,8 +83,6 @@ async def run_planner_with_ui(
             return "Error: Zip Code is required"
         if building_class is None or building_class == "":
             return "Error: Building Class is required"
-        if residential_units is None or residential_units == "":
-            return "Error: Residential Units is required"
         if current_debt is None or current_debt == "":
             return "Error: Current Debt is required"
 
@@ -100,8 +98,6 @@ async def run_planner_with_ui(
             return "Error: Annual Income must be greater than 0"
         if credit_score_val < 300 or credit_score_val > 850:
             return "Error: Credit Score must be between 300 and 850"
-        if residential_units_val <= 0:
-            return "Error: Residential Units must be greater than 0"
         if current_debt_val < 0:
             return "Error: Current Debt must be 0 or greater"
 
@@ -332,11 +328,6 @@ def create_interface() -> gr.Blocks:
                             value="Any - All building types",
                         )
 
-                        # Property Details
-                        residential_units = gr.Number(
-                            label="Residential Units", value=1, minimum=1, step=1
-                        )
-
                         analyze_btn = gr.Button("Analyze", variant="primary", size="lg")
 
                     with gr.Column(elem_id="outer-panel"):
@@ -356,7 +347,6 @@ def create_interface() -> gr.Blocks:
                             what_looking_for,
                             zip_code,
                             building_class,
-                            residential_units,
                             current_debt,
                         ],
                         outputs=output,

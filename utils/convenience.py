@@ -60,3 +60,10 @@ def get_gemini_model() -> str:
     if not model:
         raise NotImplementedError("GEMINI_MODEL not set in environment variables.")
     return model if model else "gpt-3.5-turbo"
+
+
+def set_remote_pdb() -> None:
+    """Set up remote pdb for debugging."""
+    from remote_pdb import RemotePdb
+
+    RemotePdb(host="localhost", port=4444).set_trace()
