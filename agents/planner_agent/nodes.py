@@ -1,5 +1,6 @@
 """Nodes for the Planner Agent workflow."""
 
+import asyncio
 from copy import deepcopy
 from logging import Logger
 from typing import Any
@@ -110,10 +111,12 @@ async def run_geoscout_agent_node(state: PlannerState) -> PlannerState:
 
 
 async def run_nodes(state: PlannerState) -> PlannerState:
-    """Run all nodes in sequence for testing purposes"""
-    budget_state = await run_budgeting_agent_node(state=state)
-    program_state = await run_program_agent_node(state=state)
-    geoscout_state = await run_geoscout_agent_node(state=state)
+    """Run all nodes in parallel for better performance"""
+    budget_state, program_state, geoscout_state = await asyncio.gather(
+        run_budgeting_agent_node(state=state),
+        run_program_agent_node(state=state),
+        run_geoscout_agent_node(state=state)
+    )
     # Budgeting state updates
     state.update(
         {
