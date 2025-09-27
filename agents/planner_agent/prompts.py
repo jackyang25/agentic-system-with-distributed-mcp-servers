@@ -50,7 +50,7 @@ def get_comprehensive_analysis_prompt(state: dict) -> str:
     SUMMARY OF NEIGHBORHOOD DATA:
     {geoscout_results}
 
-    Note: This includes market data, transit, crime, and school district information relevant to the property search.
+    Note: This includes transit, crime, and school district information relevant to the property search.
     """
 
     prompt += """
@@ -58,7 +58,7 @@ def get_comprehensive_analysis_prompt(state: dict) -> str:
     Please provide a concise analysis (max 500 words make the format render professionally in markdown) that includes:
 
     1. FINANCIAL SUMMARY: Key metrics clearly (take into consideration current debt)
-    2. NEIGHBORHOOD: Provide context of neighborhood, transit, crime, and school district data
+    2. NEIGHBORHOOD: Provide context of neighborhood, market data, transit, crime, and school district data
     2. READINESS: Financial readiness assessment
     3. GOVERNMENT PROGRAMS: List ALL eligible programs with complete details including name, jurisdiction, assistance type, benefits, source links, and eligibility reasoning
     4. RECOMMENDATIONS: 2-3 specific, actionable steps
