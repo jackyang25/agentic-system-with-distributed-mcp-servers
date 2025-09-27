@@ -50,7 +50,7 @@ def get_comprehensive_analysis_prompt(state: dict) -> str:
     SUMMARY OF NEIGHBORHOOD DATA:
     {geoscout_results}
 
-    Note: This includes transit, crime, and school district information relevant to the property search.
+    Note: This includes market data, transit, crime, and school district information relevant to the property search.
     """
 
     prompt += """
@@ -69,7 +69,7 @@ def get_comprehensive_analysis_prompt(state: dict) -> str:
     """
 
     prompt += f"""
-    Include the total token usage and cost at the end of your output. You can grab the information from {state["usage_metadata"]}.
+    Include the total token usage at the end of your output. You can grab the information from {state["usage_metadata"]}.
     Make it very concise as a footnote style.
     """
 

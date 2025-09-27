@@ -72,19 +72,20 @@ async def run_planner_with_ui(
     zip_code: str,
     building_class: str,
     current_debt: int,
-) -> Any:
+    analysis_context: Any,
+) -> tuple[Any, Any]:
     residential_units = 1
     try:
         if income is None or income == "":
-            return "Error: Gross Annual Income is required"
+            return "Error: Gross Annual Income is required", analysis_context
         if credit_score is None or credit_score == "":
-            return "Error: Credit Score is required"
+            return "Error: Credit Score is required", analysis_context
         if zip_code is None or zip_code == "":
-            return "Error: Zip Code is required"
+            return "Error: Zip Code is required", analysis_context
         if building_class is None or building_class == "":
-            return "Error: Building Class is required"
+            return "Error: Building Class is required", analysis_context
         if current_debt is None or current_debt == "":
-            return "Error: Current Debt is required"
+            return "Error: Current Debt is required", analysis_context
 
         try:
             income_val = float(income)
@@ -92,14 +93,14 @@ async def run_planner_with_ui(
             residential_units_val = int(residential_units)
             current_debt_val = float(current_debt)
         except (ValueError, TypeError):
-            return "Error: Invalid numeric values provided"
+            return "Error: Invalid numeric values provided", analysis_context
 
         if income_val <= 0:
-            return "Error: Annual Income must be greater than 0"
+            return "Error: Annual Income must be greater than 0", analysis_context
         if credit_score_val < 300 or credit_score_val > 850:
-            return "Error: Credit Score must be between 300 and 850"
+            return "Error: Credit Score must be between 300 and 850", analysis_context
         if current_debt_val < 0:
-            return "Error: Current Debt must be 0 or greater"
+            return "Error: Current Debt must be 0 or greater", analysis_context
 
         # Prepare data for the planner agent
         user_data: dict[str, Any] = {
@@ -120,29 +121,26 @@ async def run_planner_with_ui(
         result: Any = await run_planner_agent(user_data=user_data)
         formatted_result: Any = format_planner_results(result=result)
 
-        # Store analysis context for chatbot
-        global analysis_context
+        # Update analysis context for this user
         analysis_context = formatted_result
 
         logger.info("Analysis complete. Chatbot is now available in the 'Chat' tab.")
 
-        # Return the formatted result
-        return formatted_result
+        # Return the formatted result and updated context
+        return formatted_result, analysis_context
     except Exception as e:
         import traceback
 
         traceback.print_exc()
-        return f"Error: {str(e)}"
+        return f"Error: {str(e)}", analysis_context
 
 
 def handle_chatbot(
-    message: str, history: list[dict[str, str]]
-) -> tuple[list[dict[str, str]], Literal[""]]:
+    message: str, history: list[dict[str, str]], analysis_context: Any
+) -> tuple[list[dict[str, str]], Literal[""], Any]:
     """Handle chatbot interactions with analysis context"""
-    global analysis_context
-
     if not message.strip():
-        return history, ""
+        return history, "", analysis_context
 
     if not analysis_context or analysis_context == "No analysis available":
         history.append({"role": "user", "content": message})
@@ -152,7 +150,7 @@ def handle_chatbot(
                 "content": "I don't have access to your analysis results yet. Please run the analysis first.",
             }
         )
-        return history, ""
+        return history, "", analysis_context
 
     # Add user message to history
     history.append({"role": "user", "content": message})
@@ -181,7 +179,7 @@ def handle_chatbot(
     except Exception as e:
         history.append({"role": "assistant", "content": f"Error: {str(e)}"})
 
-    return history, ""
+    return history, "", analysis_context
 
 
 def create_interface() -> gr.Blocks:
@@ -192,6 +190,8 @@ def create_interface() -> gr.Blocks:
         theme=gr.themes.Monochrome(),
         css=custom_css,
     ) as demo:
+        # Create per-user state for analysis context
+        analysis_context = gr.State(value=None)
         gr.Markdown(
             value="# <div style='display: inline-flex; align-items: baseline;'><svg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg' style='display: inline; vertical-align: text-bottom; margin-right: 8px;'><path d='M10 0C4.477 0 0 4.477 0 10 0 14.418 2.865 18.167 6.839 19.489c.5.092.661-.217.661-.482v-1.862c-2.785.606-3.361-1.18-3.361-1.18-.455-1.156-1.111-1.463-1.111-1.463-.908-.62.069-.608.069-.608 1.005.07 1.533 1.031 1.533 1.031.892 1.529 2.341 1.087 2.91.831.089-.646.35-1.087.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.092.39-1.984 1.03-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.293 2.747-1.025 2.747-1.025.546 1.379.203 2.398.1 2.647.64.699 1.025 1.591 1.025 2.683 0 3.842-2.339 4.687-4.566 4.943.358.309.683.919.683 1.856v2.75c0 .266.18.572.681.475C17.138 18.167 20 14.418 20 10c0-5.523-4.477-10-10-10z' fill='#6B7280'/></svg>MAREA</div>"
         )
@@ -348,8 +348,9 @@ def create_interface() -> gr.Blocks:
                             zip_code,
                             building_class,
                             current_debt,
+                            analysis_context,
                         ],
-                        outputs=output,
+                        outputs=[output, analysis_context],
                     )
 
             with gr.Tab(label="Chat"):
@@ -367,14 +368,14 @@ def create_interface() -> gr.Blocks:
                 # RemotePdb(host="localhost", port=4444).set_trace()
                 chatbot_send.click(
                     fn=handle_chatbot,
-                    inputs=[chatbot_input, chatbot],
-                    outputs=[chatbot, chatbot_input],
+                    inputs=[chatbot_input, chatbot, analysis_context],
+                    outputs=[chatbot, chatbot_input, analysis_context],
                 )
 
                 # Allow Enter key to send message
                 chatbot_input.submit(
                     fn=handle_chatbot,
-                    inputs=[chatbot_input, chatbot],
-                    outputs=[chatbot, chatbot_input],
+                    inputs=[chatbot_input, chatbot, analysis_context],
+                    outputs=[chatbot, chatbot_input, analysis_context],
                 )
     return demo
