@@ -11,7 +11,7 @@ services:
       context: .
       dockerfile: ./mcp_kit/servers/supabase/Dockerfile
     container_name: supabase-mcp-server
-    restart: unless-stopped
+    restart: unless-stopped   # <-- added
     command: tail -f /dev/null
     networks: [marea-network]
 
@@ -21,7 +21,7 @@ services:
       context: .
       dockerfile: ./mcp_kit/servers/finance/Dockerfile
     container_name: finance-mcp-server
-    restart: unless-stopped
+    restart: unless-stopped   # <-- added
     command: tail -f /dev/null
     networks: [marea-network]
 
@@ -31,7 +31,7 @@ services:
       context: .
       dockerfile: ./mcp_kit/servers/location/Dockerfile
     container_name: location-mcp-server
-    restart: unless-stopped
+    restart: unless-stopped   # <-- added
     command: tail -f /dev/null
     networks: [marea-network]
 
@@ -48,11 +48,11 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     volumes:
-      # Keep this only if you need to exec into other containers from here
       - /var/run/docker.sock:/var/run/docker.sock
       - .:/app
     ports:
       - "8000:8000"
     command: python gradio_app.py
+    restart: unless-stopped   # <-- added
     networks: [marea-network]
     user: "0:0" # Run as root to access docker socket
