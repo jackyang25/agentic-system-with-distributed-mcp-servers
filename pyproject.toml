@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "Multi Agent Real Estate Assistant (MAREA)"
 authors = ["Carlos Huaccho <huaccho.carlos0612@gmail.com>"]
 package-mode = false
+license = "MIT"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
