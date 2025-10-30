@@ -1,5 +1,4 @@
-The Challenge
-"By the age of 30, only about 42 percent of millennials owned a home. That compares to 48 percent of Generation X and 51 percent of Baby Boomers."
+The challenge: "By the age of 30, only about 42 percent of millennials owned a home. That compares to 48 percent of Generation X and 51 percent of Baby Boomers."
 Many first-time buyers face high costs, debt, and a maze of programs. This project helps check a basic budget, find affordable neighborhoods, and surface relevant assistance programs.
 
 Quick Start
@@ -14,7 +13,6 @@ Quick Start
    make stop  
 
 Environment variables (.env)
-Required  
   OPENAI_API_KEY=your_openai_api_key_here  
   OPENAI_MODEL=gpt-4o-mini  
   GEMINI_MODEL=gemini-2.5-flash  
