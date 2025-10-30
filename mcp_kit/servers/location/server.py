@@ -1,7 +1,6 @@
 import os
-from typing import Any
-
 import httpx
+from typing import Any
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 
@@ -11,7 +10,7 @@ server: FastMCP = FastMCP(name="Location")
 
 
 def _get_zip_coordinates(zip_code: str) -> tuple[float, float]:
-    """Convert ZIP code to lat/lon coordinates using a reliable geocoding service."""
+    """Convert ZIP code to lat/lon coordinates"""
     try:
         url = f"https://api.zippopotam.us/us/{zip_code}"
 

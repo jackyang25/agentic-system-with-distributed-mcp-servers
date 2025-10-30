@@ -1,8 +1,4 @@
-"""Prompts for the Program Agent workflow."""
-
-
 def format_user_profile(state) -> str:
-    """Format user profile for LLM filtering"""
     who_i_am = state.get("who_i_am", [])
     state_location = state.get("state", "")
     income = state.get("income")
@@ -26,7 +22,6 @@ def format_user_profile(state) -> str:
 
 
 def format_program_summary(program) -> str:
-    """Format program details for LLM filtering"""
     return f"""
     Program: {program.get("program_name", "")}
     Eligibility: {program.get("eligibility", "")}
@@ -37,8 +32,6 @@ def format_program_summary(program) -> str:
 
 
 def create_batch_eligibility_prompt(user_profile, programs_text) -> str:
-    """Create the LLM prompt for batch program eligibility filtering"""
-
     return f"""
     You are an expert in government assistance programs. Evaluate the programs below for user eligibility.
     

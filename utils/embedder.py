@@ -1,26 +1,16 @@
-#!/usr/bin/env python3
-"""
-NY Programs Embedder
-
-This script generates embeddings for NY programs data and saves them to CSV format
-for use with pgvector in Supabase.
-"""
-
 import csv
 import json
 import os
-from typing import Any
-
 import openai
+from typing import Any
 from openai.types.create_embedding_response import CreateEmbeddingResponse
-
 from utils.convenience import load_secrets
+
 load_secrets()
 
 
 class NYProgramsEmbedder:
     def __init__(self) -> None:
-        """Initialize the embedder."""
         self.api_key: str = os.getenv(key="OPENAI_API_KEY")
         if not self.api_key:
             raise ValueError(
@@ -31,27 +21,22 @@ class NYProgramsEmbedder:
         self.embedding_model: str = "text-embedding-3-small"
 
     def format_program_for_embedding(self, program: dict[str, Any]) -> str:
-        """Format a program dictionary into structured text for embedding."""
-
         format_program_string: str = f"""Program: {program.get("Program Name", "")}
-Type: {program.get("Assistance Type", "")}
-Location: {program.get("Jurisdiction", "")}
-Benefit: {program.get("Max Benefit", "")}"""
+        Type: {program.get("Assistance Type", "")}
+        Location: {program.get("Jurisdiction", "")}
+        Benefit: {program.get("Max Benefit", "")}"""
 
         return format_program_string
 
     def format_query_for_embedding(self, query: str) -> str:
-        """Format a user query to match the program structure."""
-
         embedding_query_string: str = f"""Program: {query}
-Type: 
-Location: 
-Benefit: """
+        Type: 
+        Location: 
+        Benefit: """
 
         return embedding_query_string
 
     def generate_embedding(self, text: str) -> list[float]:
-        """Generate embedding for the given text."""
         try:
             response: CreateEmbeddingResponse = openai.embeddings.create(
                 model=self.embedding_model, input=text
@@ -62,14 +47,12 @@ Benefit: """
             raise
 
     def load_programs(self, json_file_path: str) -> list[dict[str, Any]]:
-        """Load programs from JSON file."""
         if not os.path.exists(json_file_path):
             raise FileNotFoundError(f"File not found: {json_file_path}")
         with open(file=json_file_path, mode="r", encoding="utf-8") as f:
             return json.load(f)
 
     def process_programs(self, programs: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """Process all programs and generate embeddings."""
         processed_programs: list[Any] = []
 
         print(f"Processing {len(programs)} programs...")
@@ -103,7 +86,6 @@ Benefit: """
     def save_to_csv(
         self, processed_programs: list[dict[str, Any]], output_file: str
     ) -> None:
-        """Save processed programs to CSV file."""
         with open(file=output_file, mode="w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
 
@@ -142,7 +124,6 @@ Benefit: """
     def save_embeddings_only(
         self, processed_programs: list[dict[str, Any]], output_file: str
     ) -> None:
-        """Save just the embeddings in a format suitable for pgvector."""
         with open(file=output_file, mode="w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
 

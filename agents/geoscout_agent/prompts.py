@@ -1,7 +1,4 @@
-"""Prompts for the GeoScout agent workflow."""
-
 from typing import Any
-
 from pydantic import BaseModel, Field
 
 
@@ -33,7 +30,6 @@ class SchoolStructure(BaseModel):
 
 
 def get_transit_score_prompt(zipcode: int, commute_result: dict[str, Any]) -> str:
-    """Prompt for transit score node"""
     return f"""
     User zip code: {zipcode}
     Transit Score Result: {commute_result}
@@ -49,7 +45,6 @@ def get_transit_score_prompt(zipcode: int, commute_result: dict[str, Any]) -> st
 
 
 def get_crime_score_prompt(zipcode: int) -> str:
-    """Prompt for crime rate node"""
     return f"""
     Zip Code: {zipcode}
 
@@ -74,7 +69,6 @@ def get_crime_score_prompt(zipcode: int) -> str:
 
 
 def get_school_score_prompt(zipcode: int) -> str:
-    """Prompt for school rate node"""
     return f"""
     Zip Code: {zipcode}
 
@@ -102,7 +96,6 @@ def get_school_score_prompt(zipcode: int) -> str:
 
 
 def get_synthesizer_prompt(commute_state: dict[str, Any]) -> str:
-    """Prompt for synthesis node"""
     return f"""
     I have completed the commute analysis with the following results:
     {commute_state}

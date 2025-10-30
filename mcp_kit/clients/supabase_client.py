@@ -4,19 +4,16 @@ import os
 from contextlib import _AsyncGeneratorContextManager
 from logging import Logger
 from typing import Any
-
 from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
 from dotenv import load_dotenv
 from mcp import ClientSession, ListToolsResult, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from mcp.shared.message import SessionMessage
 from mcp.types import CallToolResult
-
 from utils.convenience import get_logger
 
 logger: Logger = get_logger(name=__name__)
 
-# Load environment variables from .env file
 load_dotenv()
 
 
@@ -42,7 +39,6 @@ class SupabaseClient:
         self._session_context = None
 
     async def connect(self) -> None:
-        """Establish persistent connection to Supabase MCP server"""
         if self.session:
             return
 
@@ -64,7 +60,6 @@ class SupabaseClient:
         logger.info("Connected to Supabase MCP server")
 
     async def disconnect(self) -> None:
-        """Close the persistent connection"""
         if not self.session:
             return
 
@@ -74,7 +69,7 @@ class SupabaseClient:
                     exc_type=None, exc_val=None, exc_tb=None
                 )
         except (Exception, asyncio.CancelledError):
-            pass  # Ignore cleanup errors
+            pass
 
         try:
             if self._stdio_context:
@@ -82,7 +77,7 @@ class SupabaseClient:
                     typ=None, value=None, traceback=None
                 )
         except (Exception, asyncio.CancelledError):
-            pass  # Ignore cleanup errors
+            pass
 
         self.session = None
         self._session_context = None
@@ -90,14 +85,12 @@ class SupabaseClient:
         logger.info("Disconnected from Supabase MCP server")
 
     async def get_tools(self) -> list[str]:
-        """Get available tools"""
         if not self.session:
             raise RuntimeError("Not connected. Call connect() first.")
         tools_response: ListToolsResult = await self.session.list_tools()
         return [tool.name for tool in tools_response.tools]
 
     async def query_home_by_id(self, home_id: str) -> dict[str, Any]:
-        """Query NYC property sales data by HOME_ID"""
         if not self.session:
             raise RuntimeError("Not connected. Call connect() first.")
 
@@ -109,13 +102,11 @@ class SupabaseClient:
             name="execute_sql", arguments={"query": query}
         )
 
-        # Parse and return clean data
         return self._parse_property_data(result=result)
 
     async def query_price_data_by_zip_and_units(
         self, zip_code: str, residential_units: int
     ) -> dict[str, Any]:
-        """Query comprehensive price data by zip code and residential units"""
         if not self.session:
             raise RuntimeError("Not connected. Call connect() first.")
 
@@ -138,18 +129,14 @@ class SupabaseClient:
             name="execute_sql", arguments={"query": query}
         )
 
-        # Parse and return clean data
         return self._parse_price_data(result=result)
 
     async def search_programs_rag(self, embedding, limit=10) -> dict[str, Any]:
-        """Search government programs using vector similarity search with RAG"""
         if not self.session:
             raise RuntimeError("Not connected. Call connect() first.")
 
-        # Convert embedding to JSON string for SQL query
         embedding_str: str = json.dumps(embedding)
 
-        # Query the nyc_programs_rag table using vector similarity
         query_sql: str = f"""
         SELECT 
             program_name,
@@ -165,12 +152,10 @@ class SupabaseClient:
         LIMIT {limit};
         """
 
-        # Execute the query
         result: CallToolResult = await self.session.call_tool(
             name="execute_sql", arguments={"query": query_sql}
         )
 
-        # Parse and return clean data
         return self._parse_programs_rag_results(result=result)
 
     def _parse_programs_rag_results(self, result: CallToolResult) -> dict[str, Any]:
@@ -178,10 +163,7 @@ class SupabaseClient:
         if not result or not hasattr(result, "content") or not result.content:
             return {"error": "No results found"}
 
-        import json
-
         try:
-            # The result.content is a list of TextContent objects
             if not isinstance(result.content, list) or len(result.content) == 0:
                 return {"error": "No results found"}
 
@@ -189,7 +171,6 @@ class SupabaseClient:
             if not isinstance(content_text, str):
                 return {"error": "Invalid response format"}
 
-            # Extract the JSON part between the boundaries
             start_marker: str = "<untrusted-data-"
             end_marker: str = "</untrusted-data-"
             start_idx: int = content_text.find(start_marker)
@@ -198,7 +179,6 @@ class SupabaseClient:
             if start_idx == -1 or end_idx == -1 or start_idx >= end_idx:
                 return {"error": "No data found in response"}
 
-            # Find the JSON array within the boundaries
             json_start: int = content_text.find("[", start_idx)
             json_end: int = content_text.find("]", json_start)
 
@@ -206,14 +186,12 @@ class SupabaseClient:
                 return {"error": "No JSON data found"}
 
             json_str: str = content_text[json_start : json_end + 1]
-            # Unescape the JSON string to handle escaped quotes
             json_str: str = json_str.replace('\\"', '"')
             raw_programs: Any = json.loads(json_str)
 
             if not isinstance(raw_programs, list):
                 return {"error": "Invalid data format"}
 
-            # Format results with rank as key
             programs: list[Any] = []
             for i, program in enumerate(raw_programs):
                 if isinstance(program, dict):
@@ -227,10 +205,7 @@ class SupabaseClient:
                             "max_benefit": program.get("max_benefit", ""),
                             "eligibility": program.get("eligibility", ""),
                             "source": program.get("source", ""),
-                            "similarity_score": 1
-                            - float(
-                                program.get("distance", 1)
-                            ),  # Convert distance to similarity
+                            "similarity_score": 1 - float(program.get("distance", 1)),
                         }
                     )
 
@@ -248,12 +223,10 @@ class SupabaseClient:
             return {"error": f"Failed to parse results: {str(e)}"}
 
     def _parse_property_data(self, result: CallToolResult) -> Any:
-        """Parse MCP result and return clean property data"""
         if not result or not hasattr(result, "content") or not result.content:
             return result
 
         try:
-            # The result.content is a list of TextContent objects
             if not isinstance(result.content, list) or len(result.content) == 0:
                 return result
 
@@ -261,7 +234,6 @@ class SupabaseClient:
             if not isinstance(content_text, str):
                 return result
 
-            # Extract the JSON part between the boundaries
             start_marker: str = "<untrusted-data-"
             end_marker: str = "</untrusted-data-"
             start_idx: int = content_text.find(start_marker)
@@ -270,7 +242,6 @@ class SupabaseClient:
             if start_idx == -1 or end_idx == -1 or start_idx >= end_idx:
                 return result
 
-            # Find the JSON array within the boundaries
             json_start: int = content_text.find("[", start_idx)
             json_end: int = content_text.find("]", json_start)
 
@@ -278,7 +249,6 @@ class SupabaseClient:
                 return result
 
             json_str: str = content_text[json_start : json_end + 1]
-            # Unescape the JSON string to handle escaped quotes
             json_str: str = json_str.replace('\\"', '"')
             property_list: Any = json.loads(json_str)
 
@@ -289,7 +259,6 @@ class SupabaseClient:
             if not isinstance(property_data, dict):
                 return result
 
-            # Return only key fields for LLM analysis
             return {
                 "home_id": property_data.get("HOME_ID"),
                 "address": property_data.get("ADDRESS"),
@@ -305,19 +274,15 @@ class SupabaseClient:
             TypeError,
             AttributeError,
         ) as e:
-            # Debug: print the error to see what's happening
             logger.info(f"DEBUG: Parsing failed with error: {e}")
             logger.info(f"DEBUG: Content text: {content_text[:200]}...")
-            # If anything goes wrong, return original result
             return result
 
     def _parse_price_data(self, result) -> Any:
-        """Parse MCP result and return clean price data"""
         if not result or not hasattr(result, "content") or not result.content:
             return result
 
         try:
-            # The result.content is a list of TextContent objects
             if not isinstance(result.content, list) or len(result.content) == 0:
                 return result
 
@@ -325,7 +290,6 @@ class SupabaseClient:
             if not isinstance(content_text, str):
                 return result
 
-            # Extract the JSON part between the boundaries
             start_marker: str = "<untrusted-data-"
             end_marker: str = "</untrusted-data-"
             start_idx: int = content_text.find(start_marker)
@@ -334,7 +298,6 @@ class SupabaseClient:
             if start_idx == -1 or end_idx == -1 or start_idx >= end_idx:
                 return result
 
-            # Find the JSON array within the boundaries
             json_start: int = content_text.find("[", start_idx)
             json_end: int = content_text.find("]", json_start)
 
@@ -342,7 +305,6 @@ class SupabaseClient:
                 return result
 
             json_str: str = content_text[json_start : json_end + 1]
-            # Unescape the JSON string to handle escaped quotes
             json_str: str = json_str.replace('\\"', '"')
             data_list: Any = json.loads(json_str)
 
@@ -353,7 +315,6 @@ class SupabaseClient:
             if not isinstance(data, dict):
                 return {"error": "Invalid data format"}
 
-            # Return comprehensive price data
             return {
                 "zip_code": data.get("zip_code"),
                 "residential_units": data.get("residential_units"),
@@ -381,8 +342,6 @@ class SupabaseClient:
             TypeError,
             AttributeError,
         ) as e:
-            # Debug: print the error to see what's happening
             logger.info(f"DEBUG: Average price parsing failed with error: {e}")
             logger.info(f"DEBUG: Content text: {content_text[:200]}...")
-            # If anything goes wrong, return original result
             return result

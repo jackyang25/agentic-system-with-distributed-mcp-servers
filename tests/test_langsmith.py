@@ -1,17 +1,13 @@
-"""Test langsmith."""
-
 import pytest
-
+import pdb
 from utils.convenience import load_secrets
 
 load_secrets()
 
 
 def test_langsmith_connection(langsmith_client):
-    """Test case for langsmith integration."""
     try:
         projects = list(langsmith_client.list_projects())
-        import pdb
 
         pdb.set_trace()
         assert projects is not None, (

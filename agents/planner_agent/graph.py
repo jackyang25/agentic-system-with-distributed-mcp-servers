@@ -1,10 +1,6 @@
-"""Graph for the Planner Agent workflow."""
-
 from typing import Any
-
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
-
 from agents.planner_agent.nodes import (
     run_nodes,
     synthesis_node,
@@ -28,7 +24,6 @@ def initialize_graph() -> StateGraph:
 def compile_graph() -> CompiledStateGraph[
     PlannerState, None, PlannerState, PlannerState
 ]:
-    """Compile the graph into a runnable agent"""
     graph: StateGraph[PlannerState, None, PlannerState, PlannerState] = (
         initialize_graph()
     )
@@ -36,7 +31,6 @@ def compile_graph() -> CompiledStateGraph[
 
 
 async def run_planner_agent(user_data) -> dict[str, Any] | Any:
-    """Entry point to run the planner agent with user data"""
     initial_state: dict[str, Any] = {
         "current_step": "starting",
         "income": user_data["income"],

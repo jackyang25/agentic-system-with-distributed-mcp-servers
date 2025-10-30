@@ -1,13 +1,9 @@
-"""Nodes for the Planner Agent workflow."""
-
 import asyncio
 from copy import deepcopy
 from logging import Logger
 from typing import Any
-
 from langchain_core.messages.base import BaseMessage
 from langchain_openai import ChatOpenAI
-
 from agents.budgeting_agent.graph import run_budgeting_agent
 from agents.geoscout_agent.graph import run_geoscout_agent
 from agents.planner_agent.prompts import get_comprehensive_analysis_prompt
@@ -17,12 +13,10 @@ from utils.convenience import get_logger, get_openai_model
 from utils.token_tracking import token_usage_tracking
 
 logger: Logger = get_logger(name=__name__)
-
 openai_model: str = get_openai_model()
 
 
 async def run_budgeting_agent_node(state: PlannerState) -> PlannerState:
-    """Call the budgeting agent and store results in state"""
     agent_state = deepcopy(state)
     current_step: str = agent_state.get("current_step", "unknown")
     logger.info(f"STEP: {current_step} -> Calling budgeting agent...")
@@ -50,7 +44,6 @@ async def run_budgeting_agent_node(state: PlannerState) -> PlannerState:
 
 
 async def run_program_agent_node(state: PlannerState) -> PlannerState:
-    """Call the program agent and store results in state"""
     agent_state = deepcopy(state)
     current_step: str = agent_state.get("current_step", "unknown")
     logger.info(f"STEP: {current_step} -> Calling program agent...")
@@ -79,7 +72,6 @@ async def run_program_agent_node(state: PlannerState) -> PlannerState:
 
 
 async def run_geoscout_agent_node(state: PlannerState) -> PlannerState:
-    """Call the geoscout agent and store results in state"""
     agent_state = deepcopy(state)
     current_step: str = agent_state.get("current_step", "unknown")
     logger.info(f"STEP: {current_step} -> Calling geoscout agent...")
@@ -101,11 +93,10 @@ async def run_geoscout_agent_node(state: PlannerState) -> PlannerState:
 
 
 async def run_nodes(state: PlannerState) -> PlannerState:
-    """Run all nodes in parallel for better performance"""
     budget_state, program_state, geoscout_state = await asyncio.gather(
         run_budgeting_agent_node(state=state),
         run_program_agent_node(state=state),
-        run_geoscout_agent_node(state=state)
+        run_geoscout_agent_node(state=state),
     )
     state.update(
         {
@@ -149,7 +140,6 @@ async def run_nodes(state: PlannerState) -> PlannerState:
 
 
 async def synthesis_node(state: PlannerState) -> PlannerState:
-    """Synthesize all agent results into final analysis"""
     current_step: str = state.get("current_step", "unknown")
     logger.info(f"STEP: {current_step} -> Generating final analysis...")
 
@@ -159,7 +149,7 @@ async def synthesis_node(state: PlannerState) -> PlannerState:
         logger.info("   Calling LLM for analysis...")
         model = ChatOpenAI(
             model=openai_model,
-            timeout=30,  # 30 second timeout
+            timeout=30,
             max_retries=2,
         )
 

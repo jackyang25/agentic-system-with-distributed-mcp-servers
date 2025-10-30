@@ -3,14 +3,13 @@ from fastmcp import FastMCP
 server: FastMCP = FastMCP(name="Finance")
 
 
-@server.tool()  # ← Registers tool, but server not running yet
+@server.tool()
 def calculate_budget(income: float) -> float:
     return income * 0.30
 
 
 @server.tool()
 def loan_qualification(income: float, credit_score: int) -> float:
-    """Calculate maximum loan amount based on income and credit score"""
     if credit_score >= 750:
         multiplier = 5.0
     elif credit_score >= 700:

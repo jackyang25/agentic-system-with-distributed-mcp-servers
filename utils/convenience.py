@@ -1,16 +1,14 @@
-"""Utility tools for handling secrets."""
-
 import logging
 import os
 import sys
 from pathlib import Path
+from remote_pdb import RemotePdb
 
 
 def get_logger(name: str) -> logging.Logger:
-    """Return a logger for the given file/module name."""
     logger: logging.Logger = logging.getLogger(name=name)
 
-    if not logger.handlers:  # avoid duplicate handlers
+    if not logger.handlers:
         logger.setLevel(level=logging.DEBUG)
 
         handler: logging.StreamHandler[logging.TextIO | logging.Any] = (
@@ -30,7 +28,6 @@ def get_logger(name: str) -> logging.Logger:
 
 
 def load_secrets() -> None:
-    """Load secrets into environment variables."""
     creds_file: Path = Path(__file__).parent.parent.joinpath(".env")
     if not creds_file.exists():
         print("No .env file found.")
@@ -45,7 +42,6 @@ def load_secrets() -> None:
 
 
 def get_openai_model() -> str:
-    """Get the OpenAI model from environment variables or use default."""
     load_secrets()
     model = os.environ.get("OPENAI_MODEL")
     if not model:
@@ -54,7 +50,6 @@ def get_openai_model() -> str:
 
 
 def get_gemini_model() -> str:
-    """Get the Gemini model from environment variables or use default."""
     load_secrets()
     model = os.environ.get("GEMINI_MODEL")
     if not model:
@@ -63,7 +58,4 @@ def get_gemini_model() -> str:
 
 
 def set_remote_pdb() -> None:
-    """Set up remote pdb for debugging."""
-    from remote_pdb import RemotePdb
-
     RemotePdb(host="localhost", port=4444).set_trace()

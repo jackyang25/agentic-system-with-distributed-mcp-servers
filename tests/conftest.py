@@ -1,5 +1,3 @@
-"""Test fixtures."""
-
 import pytest
 from langsmith import Client
 
@@ -11,5 +9,4 @@ def anyio_backend():
 
 @pytest.fixture
 def langsmith_client():
-    # Initialize the LangSmith client
     return Client()

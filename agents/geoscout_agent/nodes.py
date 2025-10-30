@@ -1,10 +1,6 @@
-"""Geoscout agent nodes."""
-
 from typing import Any
-
 from langchain_core.messages.base import BaseMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
-
 from agents.geoscout_agent.prompts import (
     CommuteStructure,
     CrimeStructure,
@@ -23,7 +19,6 @@ gemini_model: str = get_gemini_model()
 
 
 async def node_commute_score(state: GeoScoutState) -> GeoScoutState:
-    """Calculate maximum loan amount based on income and credit score"""
     transit_score: dict[str, Any] = await get_transit_score.ainvoke(
         input={"zip_code": state["zip_code"]}
     )
@@ -67,7 +62,6 @@ async def node_commute_score(state: GeoScoutState) -> GeoScoutState:
 
 
 async def node_crime_rate(state: GeoScoutState) -> GeoScoutState:
-    """Calculate maximum loan amount based on income and credit score"""
     llm = ChatGoogleGenerativeAI(model=gemini_model, stream_usage=True)
     prompt: str = get_crime_score_prompt(zipcode=state["zip_code"])
     structured_llm = llm.with_structured_output(
@@ -98,7 +92,6 @@ async def node_crime_rate(state: GeoScoutState) -> GeoScoutState:
 
 
 async def node_school_rate(state: GeoScoutState) -> GeoScoutState:
-    """Calculate maximum loan amount based on income and credit score"""
     llm = ChatGoogleGenerativeAI(model=gemini_model, stream_usage=True)
     prompt: str = get_school_score_prompt(zipcode=state["zip_code"])
     structured_llm = llm.with_structured_output(
@@ -129,7 +122,6 @@ async def node_school_rate(state: GeoScoutState) -> GeoScoutState:
 
 
 async def node_synthesizer(state: GeoScoutState) -> GeoScoutState:
-    """Calculate maximum loan amount based on income and credit score"""
     llm = ChatGoogleGenerativeAI(model=gemini_model)
     prompt: str = get_synthesizer_prompt(commute_state=state)
     response: BaseMessage = await llm.ainvoke(input=prompt)

@@ -1,8 +1,7 @@
 from typing import Any
-
 from langchain_core.tools import tool
-
 from mcp_kit.adapter import Adapter
+
 mcp_adapter = Adapter()
 
 
@@ -15,7 +14,7 @@ async def calculate_budget(income: float) -> dict[str, Any]:
 
 @tool
 async def loan_qualification(income: float, credit_score: int) -> dict[str, Any]:
-    """Calculate maximum loan amount based on income and credit score using Finance MCP"""
+    """Calculate maximum loan  based on income and credit score using Finance MCP"""
     result: dict[str, Any] = await mcp_adapter.finance.loan_qualification(
         income=income, credit_score=credit_score
     )

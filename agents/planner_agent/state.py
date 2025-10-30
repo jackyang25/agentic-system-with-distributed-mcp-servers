@@ -1,7 +1,4 @@
-"""State for the Planner Agent workflow."""
-
 from typing import Any, Optional
-
 from typing_extensions import TypedDict
 
 

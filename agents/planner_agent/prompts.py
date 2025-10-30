@@ -1,11 +1,7 @@
-"""Prompts for the Planner Agent workflow."""
-
 from typing import Any
 
 
 def get_comprehensive_analysis_prompt(state: dict) -> str:
-    """Generate comprehensive LLM prompt for data formatting and analysis"""
-    # Extract all values from planner state
     budgeting_results: dict[str, Any] = state.get("budgeting_agent_results", {})
     program_results: str = state.get("program_agent_results", {}).get(
         "filtered_programs", None
@@ -15,7 +11,6 @@ def get_comprehensive_analysis_prompt(state: dict) -> str:
     )
     price_data: dict[str, Any] = state.get("price_data", {})
 
-    # Build the comprehensive prompt
     prompt: str = f"""
     You are a financial advisor helping someone with home buying. Based on their profile below, provide a comprehensive analysis:
 
@@ -34,7 +29,6 @@ def get_comprehensive_analysis_prompt(state: dict) -> str:
     - Market Data: Avg Price: ${price_data.get("average_sale_price", 0.0):,.2f} | Min: ${price_data.get("min_sale_price", 0.0):,.2f} | Max: ${price_data.get("max_sale_price", 0.0):,.2f} | Properties: {price_data.get("total_properties", "N/A")}
     """
 
-    # Add program information if available
     if program_results:
         prompt += f"""
 

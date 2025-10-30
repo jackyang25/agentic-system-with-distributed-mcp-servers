@@ -1,5 +1,4 @@
 from typing import Any
-
 from mcp_kit.clients.finance_client import FinanceClient
 from mcp_kit.clients.location_client import LocationClient
 from mcp_kit.clients.supabase_client import SupabaseClient
@@ -13,7 +12,6 @@ class Adapter:
         self.connected: dict[str, Any] = {}
 
     async def connect_all(self) -> dict[str, Any]:
-        """Connect to all MCP services and report status"""
         try:
             await self.supabase.connect()
             self.connected["supabase"] = "connected"
@@ -35,11 +33,9 @@ class Adapter:
         return self.connected
 
     async def check_running(self) -> dict[str, Any]:
-        """Check which services are available"""
         return self.connected
 
     async def get_available_tools(self) -> dict[str, Any]:
-        """Get all available tools from connected services"""
         tools: dict[str, Any] = {}
         if self.connected.get("finance") == "connected":
             tools["finance"] = await self.finance.get_tools()
@@ -50,7 +46,6 @@ class Adapter:
         return tools
 
     async def disconnect_all(self) -> dict[str, Any]:
-        """Clean shutdown of all services"""
         try:
             await self.supabase.disconnect()
             self.connected["supabase"] = "disconnected"

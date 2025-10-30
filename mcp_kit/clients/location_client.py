@@ -1,16 +1,15 @@
 import asyncio
+import json
 import os
 from contextlib import _AsyncGeneratorContextManager
 from logging import Logger
 from typing import Any
-
 from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
 from dotenv import load_dotenv
 from mcp import ClientSession, ListToolsResult, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from mcp.shared.message import SessionMessage
 from mcp.types import CallToolResult
-
 from utils.convenience import get_logger
 
 logger: Logger = get_logger(name=__name__)
@@ -38,11 +37,9 @@ class LocationClient:
         self._session_context = None
 
     async def connect(self) -> None:
-        """Establish persistent connection to Location MCP server"""
         if self.session:
             return
 
-        # Use proper async with pattern
         self._stdio_context: _AsyncGeneratorContextManager[
             tuple[
                 MemoryObjectReceiveStream[SessionMessage | Exception],
@@ -61,7 +58,6 @@ class LocationClient:
         logger.info("Connected to Location MCP server")
 
     async def disconnect(self) -> None:
-        """Close the persistent connection"""
         if not self.session:
             return
 
@@ -87,14 +83,12 @@ class LocationClient:
         logger.info("Disconnected from Location MCP server")
 
     async def get_tools(self) -> list[str]:
-        """Get available tools"""
         if not self.session:
             raise RuntimeError("Not connected. Call connect() first.")
         tools_response: ListToolsResult = await self.session.list_tools()
         return [tool.name for tool in tools_response.tools]
 
     async def get_transit_score(self, zip_code: str) -> dict[str, Any]:
-        """Get transit score and summary for a specific location"""
         if not self.session:
             raise RuntimeError("Not connected. Call connect() first.")
         result: CallToolResult = await self.session.call_tool(
@@ -105,20 +99,16 @@ class LocationClient:
     def _parse_location_data(
         self, result: CallToolResult, data_type: str
     ) -> dict[str, Any]:
-        """Parse MCP result and return clean location data"""
         if not result or not hasattr(result, "content") or not result.content:
             return result
 
         try:
-            # The result.content is a list of TextContent objects
             if not isinstance(result.content, list) or len(result.content) == 0:
                 return result
 
             content_text = result.content[0].text
             if not isinstance(content_text, str):
                 return result
-
-            import json
 
             try:
                 data: dict[str, Any] = json.loads(content_text)

@@ -1,16 +1,14 @@
 import pytest
-
 from mcp_kit.tools import mcp_adapter
 
 
 @pytest.mark.anyio
 async def test_tools() -> None:
-    """Test calculate budget and query properties tools"""
     print("\n" + "=" * 60)
     print("TESTING TOOLS")
     print("=" * 60)
 
-    # Test Finance client tools through adapter
+    # test Finance client tools
     print("\nTesting Finance Tool:")
     print("-" * 30)
     try:
@@ -20,7 +18,7 @@ async def test_tools() -> None:
     except Exception as e:
         print(f"FAILED: {e}")
 
-    # Test Supabase client tools through adapter
+    # test Supabase client tools
     print("\nTesting Supabase Tool:")
     print("-" * 30)
     try:

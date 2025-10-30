@@ -1,10 +1,6 @@
-"""Graph for the Budgeting Agent workflow."""
-
 from typing import Any
-
 from langgraph.graph import StateGraph
 from langgraph.graph.state import CompiledStateGraph
-
 from agents.budgeting_agent.nodes import (
     budget_calculation_node,
     loan_qualification_node,
@@ -21,12 +17,10 @@ def initialize_graph() -> StateGraph[
         StateGraph(state_schema=BudgetingState)
     )
 
-    # Add nodes
     graph.add_node(node="budget_calculation", action=budget_calculation_node)
     graph.add_node(node="loan_qualification", action=loan_qualification_node)
     graph.add_node(node="price_data_query", action=price_data_query_node)
 
-    # Set up the workflow: budget calculation -> loan qualification -> average price query
     graph.set_entry_point(key="budget_calculation")
     graph.add_edge(start_key="budget_calculation", end_key="loan_qualification")
     graph.add_edge(start_key="loan_qualification", end_key="price_data_query")
@@ -38,7 +32,6 @@ def initialize_graph() -> StateGraph[
 def compile_graph() -> CompiledStateGraph[
     BudgetingState, None, BudgetingState, BudgetingState
 ]:
-    """Compile the graph into a runnable agent"""
     graph: StateGraph[BudgetingState, None, BudgetingState, BudgetingState] = (
         initialize_graph()
     )
@@ -46,8 +39,6 @@ def compile_graph() -> CompiledStateGraph[
 
 
 async def run_budgeting_agent(user_data: dict[str, Any]) -> dict[str, Any] | Any:
-    """Entry point to run the budgeting agent with user data"""
-    # Convert user_data to initial state
     initial_state: dict[str, Any] = {
         "income": user_data["income"],
         "target_home_id": user_data.get("target_home_id", None),
@@ -62,7 +53,6 @@ async def run_budgeting_agent(user_data: dict[str, Any]) -> dict[str, Any] | Any
         "usage_metadata": {},
     }
 
-    # Create and run the graph
     agent: CompiledStateGraph[BudgetingState, None, BudgetingState, BudgetingState] = (
         compile_graph()
     )

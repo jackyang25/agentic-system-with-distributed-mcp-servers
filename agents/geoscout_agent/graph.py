@@ -1,10 +1,6 @@
-"""Graph for the GeoScout agent workflow."""
-
 from typing import Any
-
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
-
 from agents.geoscout_agent.nodes import (
     node_commute_score,
     node_crime_rate,
@@ -15,7 +11,6 @@ from agents.geoscout_agent.state import GeoScoutState
 
 
 def initialize_graph() -> GeoScoutState:
-    """Initialize the geo scout agent graph with model and tools."""
     graph: StateGraph[GeoScoutState] = StateGraph(state_schema=GeoScoutState)
 
     graph.add_node(node="node_commute_score", action=node_commute_score)
@@ -35,13 +30,11 @@ def initialize_graph() -> GeoScoutState:
 def compile_graph() -> CompiledStateGraph[
     GeoScoutState, None, GeoScoutState, GeoScoutState
 ]:
-    """Compile the graph into a runnable agent"""
     graph: GeoScoutState = initialize_graph()
     return graph.compile()
 
 
 async def run_geoscout_agent(user_data: dict[Any, Any]) -> dict[str, Any] | Any:
-    """Entry point to run the geoscout agent with user data."""
     initial_state: dict[str, Any] = {
         "current_step": "start",
         "step_count": 0,

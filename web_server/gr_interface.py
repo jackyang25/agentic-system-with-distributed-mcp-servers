@@ -1,19 +1,15 @@
 import asyncio
+import gradio as gr
 from logging import Logger
 from pathlib import Path
 from typing import Any, Literal
-
-import gradio as gr
 from langchain_core.messages.base import BaseMessage
 from langchain_openai import ChatOpenAI
-
 from agents.planner_agent.graph import run_planner_agent
 from utils.convenience import get_logger, get_openai_model
 
 logger: Logger = get_logger(name=__name__)
-
 openai_model: str = get_openai_model()
-
 local_dir: Path = Path(__file__).parent
 
 
@@ -37,9 +33,9 @@ async def chatbot_response(
 
         system_prompt: str = f"""You are a helpful real estate assistant. The user has just received an analysis with the following information:
 
-{analysis_context}
+        {analysis_context}
 
-Please answer their questions about this analysis, provide clarifications, or help them understand their options. Be helpful, accurate, and refer to the specific details from their analysis when relevant."""
+        Please answer their questions about this analysis, provide clarifications, or help them understand their options. Be helpful, accurate, and refer to the specific details from their analysis when relevant."""
 
         conversation_history: list[Any] = []
         for user_msg, bot_msg in history:

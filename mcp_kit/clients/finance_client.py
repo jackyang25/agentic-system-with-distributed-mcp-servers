@@ -2,19 +2,16 @@ import asyncio
 from contextlib import _AsyncGeneratorContextManager
 from logging import Logger
 from typing import Any
-
 from anyio.streams.memory import MemoryObjectReceiveStream, MemoryObjectSendStream
 from dotenv import load_dotenv
 from mcp import ClientSession, ListToolsResult, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from mcp.shared.message import SessionMessage
 from mcp.types import CallToolResult
-
 from utils.convenience import get_logger
 
 logger: Logger = get_logger(name=__name__)
 
-# Load environment variables from .env file
 load_dotenv()
 
 
@@ -29,11 +26,9 @@ class FinanceClient:
         self._session_context = None
 
     async def connect(self) -> None:
-        """Establish persistent connection to Finance MCP server"""
         if self.session:
             return
 
-        # Use proper async with pattern
         self._stdio_context: _AsyncGeneratorContextManager[
             tuple[
                 MemoryObjectReceiveStream[SessionMessage | Exception],
@@ -52,7 +47,6 @@ class FinanceClient:
         logger.info("Connected to Finance MCP server")
 
     async def disconnect(self) -> None:
-        """Close the persistent connection"""
         if not self.session:
             return
 
@@ -62,7 +56,7 @@ class FinanceClient:
                     exc_type=None, exc_val=None, exc_tb=None
                 )
         except (Exception, asyncio.CancelledError):
-            pass  # Ignore cleanup errors
+            pass
 
         try:
             if self._stdio_context:
@@ -70,7 +64,7 @@ class FinanceClient:
                     typ=None, value=None, traceback=None
                 )
         except (Exception, asyncio.CancelledError):
-            pass  # Ignore cleanup errors
+            pass
 
         self.session = None
         self._session_context = None
@@ -78,14 +72,12 @@ class FinanceClient:
         logger.info("Disconnected from Finance MCP server")
 
     async def get_tools(self) -> list[str]:
-        """Get available tools"""
         if not self.session:
             raise RuntimeError("Not connected. Call connect() first.")
         tools_response: ListToolsResult = await self.session.list_tools()
         return [tool.name for tool in tools_response.tools]
 
     async def calculate_budget(self, income: float) -> dict[str, Any]:
-        """Calculate 30% budget from income"""
         if not self.session:
             raise RuntimeError("Not connected. Call connect() first.")
         result: CallToolResult = await self.session.call_tool(
@@ -96,7 +88,6 @@ class FinanceClient:
     async def loan_qualification(
         self, income: float, credit_score: int
     ) -> dict[str, Any]:
-        """Calculate maximum loan amount based on income and credit score"""
         if not self.session:
             raise RuntimeError("Not connected. Call connect() first.")
         result: CallToolResult = await self.session.call_tool(
@@ -108,12 +99,10 @@ class FinanceClient:
     def _parse_budget_data(
         self, result: CallToolResult, income: float
     ) -> dict[str, Any]:
-        """Parse MCP result and return clean budget data"""
         if not result or not hasattr(result, "content") or not result.content:
             return {"error": "No result from MCP server", "raw_result": str(result)}
 
         try:
-            # The result.content is a list of TextContent objects
             if not isinstance(result.content, list) or len(result.content) == 0:
                 return {"error": "Invalid result format", "raw_result": str(result)}
 
@@ -121,11 +110,8 @@ class FinanceClient:
             if not isinstance(content_text, str):
                 return {"error": "Invalid result format", "raw_result": str(result)}
 
-            # Extract the budget value from the text
             budget_value = float(content_text)
 
-            # Return clean budget data with the input income
-            # Convert yearly budget to monthly budget
             monthly_budget: float = budget_value / 12
             return {
                 "budget": monthly_budget,
@@ -134,16 +120,13 @@ class FinanceClient:
                 "percentage": 0.30,
             }
         except (ValueError, TypeError, AttributeError):
-            # If parsing fails, return error dictionary
             return {"error": "Failed to parse budget data", "raw_result": str(result)}
 
     def _parse_loan_data(self, result: CallToolResult) -> dict[str, Any]:
-        """Parse MCP result and return clean loan data"""
         if not result or not hasattr(result, "content") or not result.content:
             return {"error": "No result from MCP server", "raw_result": str(result)}
 
         try:
-            # The result.content is a list of TextContent objects
             if not isinstance(result.content, list) or len(result.content) == 0:
                 return {"error": "Invalid result format", "raw_result": str(result)}
 
@@ -151,11 +134,8 @@ class FinanceClient:
             if not isinstance(content_text, str):
                 return {"error": "Invalid result format", "raw_result": str(result)}
 
-            # Extract the loan value from the text
             loan_value: float = float(content_text)
 
-            # Return clean loan data
             return {"max_loan": loan_value}
         except (ValueError, TypeError, AttributeError):
-            # If parsing fails, return error dictionary
             return {"error": "Failed to parse loan data", "raw_result": str(result)}
