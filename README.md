@@ -13,7 +13,6 @@ Quick Start
    API docs: http://localhost:8000/docs
 4) Stop:
    make stop
-
 ```
 
 Environment variables (.env)

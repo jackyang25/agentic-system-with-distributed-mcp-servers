@@ -31,5 +31,4 @@ class GeoScoutState(TypedDict):
     # Synthesizer node output
     total_summary: str
 
-    # Usage metadata
     usage_metadata: Optional[dict[str, Any]]

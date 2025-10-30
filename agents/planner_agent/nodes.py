@@ -27,7 +27,6 @@ async def run_budgeting_agent_node(state: PlannerState) -> PlannerState:
     current_step: str = agent_state.get("current_step", "unknown")
     logger.info(f"STEP: {current_step} -> Calling budgeting agent...")
 
-    # Extract user data from state
     user_data: dict[str, Any] = {
         "income": agent_state["income"],
         "credit_score": agent_state["credit_score"],
@@ -36,13 +35,10 @@ async def run_budgeting_agent_node(state: PlannerState) -> PlannerState:
         "usage_metadata": agent_state.get("usage_metadata"),
     }
 
-    # Call the budgeting agent
     budgeting_results: Any = await run_budgeting_agent(user_data=user_data)
 
-    # Store results in state
     agent_state["budgeting_agent_results"] = budgeting_results
 
-    # Extract primitive values for easy access
     agent_state["monthly_budget"] = budgeting_results.get("monthly_budget")
     agent_state["max_loan"] = budgeting_results.get("max_loan")
     agent_state["price_data"] = budgeting_results.get("price_data")
@@ -59,7 +55,6 @@ async def run_program_agent_node(state: PlannerState) -> PlannerState:
     current_step: str = agent_state.get("current_step", "unknown")
     logger.info(f"STEP: {current_step} -> Calling program agent...")
 
-    # Extract user data from state for program agent (include more context for LLM filtering)
     user_data: dict[str, Any] = {
         "who_i_am": agent_state.get("who_i_am", []),
         "state": agent_state.get("state"),
@@ -73,10 +68,8 @@ async def run_program_agent_node(state: PlannerState) -> PlannerState:
         "usage_metadata": agent_state.get("usage_metadata"),
     }
 
-    # Call the program agent
     program_results: Any = await run_program_agent(user_data=user_data)
 
-    # Store results in planner state
     agent_state["program_agent_results"] = program_results
     agent_state["usage_metadata"] = program_results.get("usage_metadata")
 
@@ -91,7 +84,6 @@ async def run_geoscout_agent_node(state: PlannerState) -> PlannerState:
     current_step: str = agent_state.get("current_step", "unknown")
     logger.info(f"STEP: {current_step} -> Calling geoscout agent...")
 
-    # Extract user data from state
     user_data: dict[str, Any] = {
         "income": agent_state["income"],
         "credit_score": agent_state["credit_score"],
@@ -99,10 +91,8 @@ async def run_geoscout_agent_node(state: PlannerState) -> PlannerState:
         "usage_metadata": agent_state.get("usage_metadata"),
     }
 
-    # Call the geoscout agent
     geoscout_results: dict[str, Any] = await run_geoscout_agent(user_data=user_data)
 
-    # Store results in state
     agent_state["geoscout_agent_results"] = geoscout_results
     agent_state["usage_metadata"] = geoscout_results.get("usage_metadata")
     agent_state["current_step"] = "geoscout_complete"
@@ -117,7 +107,6 @@ async def run_nodes(state: PlannerState) -> PlannerState:
         run_program_agent_node(state=state),
         run_geoscout_agent_node(state=state)
     )
-    # Budgeting state updates
     state.update(
         {
             "budgeting_agent_results": budget_state,
@@ -128,14 +117,12 @@ async def run_nodes(state: PlannerState) -> PlannerState:
         }
     )
 
-    # Geoscout state updates
     state.update(
         {
             "geoscout_agent_results": geoscout_state,
         }
     )
 
-    # Program state updates
     state.update(
         {
             "program_agent_results": program_state,
@@ -166,19 +153,16 @@ async def synthesis_node(state: PlannerState) -> PlannerState:
     current_step: str = state.get("current_step", "unknown")
     logger.info(f"STEP: {current_step} -> Generating final analysis...")
 
-    # Get budgeting results to check if we have data
     budgeting_results: dict[str, Any] = state.get("budgeting_agent_results", {})
 
     if budgeting_results:
         logger.info("   Calling LLM for analysis...")
-        # Use LLM to provide comprehensive analysis
         model = ChatOpenAI(
             model=openai_model,
             timeout=30,  # 30 second timeout
             max_retries=2,
         )
 
-        # Get the comprehensive analysis prompt from prompts.py
         analysis_prompt: str = get_comprehensive_analysis_prompt(state=state)
 
         try:

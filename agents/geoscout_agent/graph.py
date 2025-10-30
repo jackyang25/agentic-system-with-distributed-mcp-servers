@@ -18,13 +18,11 @@ def initialize_graph() -> GeoScoutState:
     """Initialize the geo scout agent graph with model and tools."""
     graph: StateGraph[GeoScoutState] = StateGraph(state_schema=GeoScoutState)
 
-    # Register nodes
     graph.add_node(node="node_commute_score", action=node_commute_score)
     graph.add_node(node="node_crime_rate", action=node_crime_rate)
     graph.add_node(node="node_school_rate", action=node_school_rate)
     graph.add_node(node="node_synthesizer", action=node_synthesizer)
 
-    # Start -> init, then route
     graph.add_edge(start_key=START, end_key="node_commute_score")
     graph.add_edge(start_key="node_commute_score", end_key="node_crime_rate")
     graph.add_edge(start_key="node_crime_rate", end_key="node_school_rate")
@@ -44,7 +42,6 @@ def compile_graph() -> CompiledStateGraph[
 
 async def run_geoscout_agent(user_data: dict[Any, Any]) -> dict[str, Any] | Any:
     """Entry point to run the geoscout agent with user data."""
-    # User input data
     initial_state: dict[str, Any] = {
         "current_step": "start",
         "step_count": 0,
@@ -60,7 +57,6 @@ async def run_geoscout_agent(user_data: dict[Any, Any]) -> dict[str, Any] | Any:
         "usage_metadata": {},
     }
 
-    # Create and run the graph
     agent: CompiledStateGraph[GeoScoutState, None, GeoScoutState, GeoScoutState] = (
         compile_graph()
     )

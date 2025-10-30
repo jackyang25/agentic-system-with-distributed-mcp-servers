@@ -37,7 +37,6 @@ def compile_graph() -> CompiledStateGraph[
 
 async def run_planner_agent(user_data) -> dict[str, Any] | Any:
     """Entry point to run the planner agent with user data"""
-    # Convert user_data to initial state
     initial_state: dict[str, Any] = {
         "current_step": "starting",
         "income": user_data["income"],
@@ -55,8 +54,6 @@ async def run_planner_agent(user_data) -> dict[str, Any] | Any:
         "final_analysis": None,
         "usage_metadata": {},
     }
-
-    # Create and run the graph
     agent: CompiledStateGraph[PlannerState, None, PlannerState, PlannerState] = (
         compile_graph()
     )

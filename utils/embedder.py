@@ -15,8 +15,6 @@ import openai
 from openai.types.create_embedding_response import CreateEmbeddingResponse
 
 from utils.convenience import load_secrets
-
-# Load environment variables
 load_secrets()
 
 
@@ -30,7 +28,7 @@ class NYProgramsEmbedder:
             )
 
         openai.api_key = self.api_key
-        self.embedding_model: str = "text-embedding-3-small"  # Cost-effective model
+        self.embedding_model: str = "text-embedding-3-small"
 
     def format_program_for_embedding(self, program: dict[str, Any]) -> str:
         """Format a program dictionary into structured text for embedding."""
@@ -78,13 +76,10 @@ Benefit: """
 
         for i, program in enumerate(programs):
             try:
-                # Format the program for embedding
                 formatted_text: str = self.format_program_for_embedding(program=program)
 
-                # Generate embedding
                 embedding: list[float] = self.generate_embedding(text=formatted_text)
 
-                # Create processed program entry
                 processed_program: dict[str, Any] = {
                     "program_id": i + 1,
                     "program_name": program.get("Program Name", ""),
@@ -112,7 +107,6 @@ Benefit: """
         with open(file=output_file, mode="w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
 
-            # Write header
             writer.writerow(
                 row=[
                     "program_id",
@@ -127,7 +121,6 @@ Benefit: """
                 ]
             )
 
-            # Write data
             for program in processed_programs:
                 original: dict[str, Any] = program["original_data"]
                 writer.writerow(
@@ -135,7 +128,7 @@ Benefit: """
                         program["program_id"],
                         program["program_name"],
                         program["formatted_text"],
-                        json.dumps(program["embedding_vector"]),  # Store as JSON string
+                        json.dumps(program["embedding_vector"]),
                         original.get("Jurisdiction", ""),
                         original.get("Assistance Type", ""),
                         original.get("Max Benefit", ""),
@@ -153,10 +146,8 @@ Benefit: """
         with open(file=output_file, mode="w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
 
-            # Write header
             writer.writerow(row=["program_id", "embedding_vector"])
 
-            # Write data
             for program in processed_programs:
                 writer.writerow(
                     row=[program["program_id"], json.dumps(program["embedding_vector"])]

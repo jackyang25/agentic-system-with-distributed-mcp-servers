@@ -5,37 +5,31 @@ networks:
     driver: bridge
 
 services:
-  # Supabase MCP Server
   supabase-mcp:
     build:
       context: .
       dockerfile: ./mcp_kit/servers/supabase/Dockerfile
     container_name: supabase-mcp-server
-    restart: unless-stopped   # <-- added
+    restart: unless-stopped
     command: tail -f /dev/null
     networks: [marea-network]
-
-  # Finance MCP Server
   finance-mcp:
     build:
       context: .
       dockerfile: ./mcp_kit/servers/finance/Dockerfile
     container_name: finance-mcp-server
-    restart: unless-stopped   # <-- added
+    restart: unless-stopped
     command: tail -f /dev/null
     networks: [marea-network]
-
-  # Location MCP Server
   location-mcp:
     build:
       context: .
       dockerfile: ./mcp_kit/servers/location/Dockerfile
     container_name: location-mcp-server
-    restart: unless-stopped   # <-- added
+    restart: unless-stopped
     command: tail -f /dev/null
     networks: [marea-network]
 
-  # Main app (marea == agent)
   marea:
     build:
       context: .
@@ -53,6 +47,6 @@ services:
     ports:
       - "8000:8000"
     command: python gradio_app.py
-    restart: unless-stopped   # <-- added
+    restart: unless-stopped 
     networks: [marea-network]
-    user: "0:0" # Run as root to access docker socket
+    user: "0:0"

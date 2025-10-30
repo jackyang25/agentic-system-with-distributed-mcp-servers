@@ -8,7 +8,7 @@ from typing_extensions import TypedDict
 class ProgramAgentState(TypedDict):
     """State definition for the Program Agent workflow."""
 
-    # User input data (for RAG and filtering)
+    # User input data (for RAG)
     who_i_am: Optional[list[str]]
     state: Optional[str]
     what_looking_for: Optional[list[str]]
@@ -23,8 +23,7 @@ class ProgramAgentState(TypedDict):
     program_matcher_results: Optional[
         list[dict[str, Any]]
     ]  # Original RAG results (list)
-    programs_text: Optional[str]  # Original programs formatted as string
-    filtered_programs: Optional[str]  # LLM filtered response as string
+    programs_text: Optional[str]
+    filtered_programs: Optional[str]
 
-    # Workflow control
     usage_metadata: Optional[dict[str, Any]]

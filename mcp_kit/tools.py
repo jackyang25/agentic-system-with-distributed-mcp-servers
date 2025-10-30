@@ -3,8 +3,6 @@ from typing import Any
 from langchain_core.tools import tool
 
 from mcp_kit.adapter import Adapter
-
-# Global adapter instance
 mcp_adapter = Adapter()
 
 

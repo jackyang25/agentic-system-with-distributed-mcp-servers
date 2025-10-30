@@ -14,21 +14,18 @@ class Adapter:
 
     async def connect_all(self) -> dict[str, Any]:
         """Connect to all MCP services and report status"""
-        # Try supabase
         try:
             await self.supabase.connect()
             self.connected["supabase"] = "connected"
         except Exception as e:
             self.connected["supabase"] = f"failed: {e}"
 
-        # Try finance
         try:
             await self.finance.connect()
             self.connected["finance"] = "connected"
         except Exception as e:
             self.connected["finance"] = f"failed: {e}"
 
-        # Try location
         try:
             await self.location.connect()
             self.connected["location"] = "connected"
@@ -54,21 +51,18 @@ class Adapter:
 
     async def disconnect_all(self) -> dict[str, Any]:
         """Clean shutdown of all services"""
-        # Try supabase
         try:
             await self.supabase.disconnect()
             self.connected["supabase"] = "disconnected"
         except Exception:
             pass
 
-        # Try finance
         try:
             await self.finance.disconnect()
             self.connected["finance"] = "disconnected"
         except Exception:
             pass
 
-        # Try location
         try:
             await self.location.disconnect()
             self.connected["location"] = "disconnected"

@@ -50,9 +50,9 @@ async def node_commute_score(state: GeoScoutState) -> GeoScoutState:
 
     async for ev in structured_llm.astream_events(input=prompt):
         if ev["event"] == "on_chat_model_end":
-            usage = ev["data"]["output"].usage_metadata  # AIMessage.usage_metadata
+            usage = ev["data"]["output"].usage_metadata
         elif ev["event"] == "on_chain_end" and ev["name"] == "RunnableSequence":
-            structured = ev["data"]["output"]  # CommuteStructure
+            structured = ev["data"]["output"]
     updated_token_usage: dict[str, Any] = token_usage_tracking(
         token_history=state.get("usage_metadata"),
         usage_data=usage,
@@ -80,9 +80,9 @@ async def node_crime_rate(state: GeoScoutState) -> GeoScoutState:
 
     async for ev in structured_llm.astream_events(input=prompt):
         if ev["event"] == "on_chat_model_end":
-            usage = ev["data"]["output"].usage_metadata  # AIMessage.usage_metadata
+            usage = ev["data"]["output"].usage_metadata
         elif ev["event"] == "on_chain_end" and ev["name"] == "RunnableSequence":
-            structured = ev["data"]["output"]  # CommuteStructure
+            structured = ev["data"]["output"]
     updated_token_usage: dict[str, Any] = token_usage_tracking(
         token_history=state.get("usage_metadata"),
         usage_data=usage,
@@ -111,9 +111,9 @@ async def node_school_rate(state: GeoScoutState) -> GeoScoutState:
 
     async for ev in structured_llm.astream_events(input=prompt):
         if ev["event"] == "on_chat_model_end":
-            usage = ev["data"]["output"].usage_metadata  # AIMessage.usage_metadata
+            usage = ev["data"]["output"].usage_metadata
         elif ev["event"] == "on_chain_end" and ev["name"] == "RunnableSequence":
-            structured = ev["data"]["output"]  # CommuteStructure
+            structured = ev["data"]["output"]
     updated_token_usage: dict[str, Any] = token_usage_tracking(
         token_history=state.get("usage_metadata"),
         usage_data=usage,

@@ -5,7 +5,6 @@ import httpx
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 
-# Load environment variables from .env file
 load_dotenv()
 
 server: FastMCP = FastMCP(name="Location")
@@ -14,8 +13,6 @@ server: FastMCP = FastMCP(name="Location")
 def _get_zip_coordinates(zip_code: str) -> tuple[float, float]:
     """Convert ZIP code to lat/lon coordinates using a reliable geocoding service."""
     try:
-        # Use a free geocoding service - we'll use a simple approach
-        # For production, you might want to use Google Maps API or similar
         url = f"https://api.zippopotam.us/us/{zip_code}"
 
         with httpx.Client() as client:
@@ -32,8 +29,7 @@ def _get_zip_coordinates(zip_code: str) -> tuple[float, float]:
             raise ValueError(f"ZIP code {zip_code} not found")
 
     except Exception:
-        # Fallback to default coordinates if API fails
-        return (40.7505, -73.9934)  # New York, NY
+        return (40.7505, -73.9934)
 
 
 @server.tool()
@@ -48,10 +44,8 @@ def get_transit_score(zip_code: str) -> dict[str, Any]:
         dictionary containing transit score, description, and route summary
     """
     try:
-        # Convert ZIP code to lat/lon
         lat, lon = _get_zip_coordinates(zip_code=zip_code)
 
-        # Get API key
         api_key = os.getenv("WALKSCORE_API_KEY")
         if not api_key:
             return {
@@ -60,7 +54,6 @@ def get_transit_score(zip_code: str) -> dict[str, Any]:
                 "zip_code": zip_code,
             }
 
-        # Make the Transit API request
         params: dict[str, Any] = {"lat": lat, "lon": lon, "wsapikey": api_key}
 
         with httpx.Client() as client:

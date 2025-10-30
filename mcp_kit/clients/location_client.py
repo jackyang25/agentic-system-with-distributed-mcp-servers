@@ -15,7 +15,6 @@ from utils.convenience import get_logger
 
 logger: Logger = get_logger(name=__name__)
 
-# Load environment variables from .env file
 load_dotenv()
 
 
@@ -72,7 +71,7 @@ class LocationClient:
                     exc_type=None, exc_val=None, exc_tb=None
                 )
         except (Exception, asyncio.CancelledError):
-            pass  # Ignore cleanup errors
+            pass
 
         try:
             if self._stdio_context:
@@ -80,7 +79,7 @@ class LocationClient:
                     typ=None, value=None, traceback=None
                 )
         except (Exception, asyncio.CancelledError):
-            pass  # Ignore cleanup errors
+            pass
 
         self.session = None
         self._session_context = None
@@ -119,15 +118,12 @@ class LocationClient:
             if not isinstance(content_text, str):
                 return result
 
-            # Try to parse as JSON first
             import json
 
             try:
                 data: dict[str, Any] = json.loads(content_text)
                 return data
             except json.JSONDecodeError:
-                # If not JSON, return as text
                 return {"data_type": data_type, "data": content_text}
         except (ValueError, TypeError, AttributeError):
-            # If parsing fails, return original result
             return result
