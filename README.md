@@ -1,7 +1,7 @@
 The challenge: "By the age of 30, only about 42 percent of millennials owned a home. That compares to 48 percent of Generation X and 51 percent of Baby Boomers."
 Many first-time buyers face high costs, debt, and a maze of programs. This project helps check a basic budget, find affordable neighborhoods, and surface relevant assistance programs.
 
-Quick Start
+Quick Start  
 1) Create a .env file. See "Environment variables (.env)" below.  
 2) Start services:  
    make start  
@@ -12,7 +12,7 @@ Quick Start
 4) Stop:  
    make stop  
 
-Environment variables (.env)
+Environment variables (.env)  
   OPENAI_API_KEY=your_openai_api_key_here  
   OPENAI_MODEL=gpt-4o-mini  
   GEMINI_MODEL=gemini-2.5-flash  
@@ -20,7 +20,7 @@ Environment variables (.env)
   SUPABASE_PROJECT_REF=your_supabase_project_ref  
   SUPABASE_ACCESS_TOKEN=your_supabase_access_token  
 
-Services
+Services  
 planner_agent     - Orchestrates the workflow and combines final output  
 budgeting_agent   - Calculates basic affordability and budget guidance  
 program_agent     - Suggests assistance programs that may match the profile  
@@ -34,16 +34,16 @@ gradio_app.py     - App entry that wires API and UI
 tests             - Basic tests for tools and flows  
 utils             - Helpers (embeddings, token tracking, etc.)  
 
-Commands
+Commands  
 make start        - Start the application  
 make stop         - Stop the application  
 make logs         - Show container logs  
 make test-planner - Run planner agent test  
 make clean        - Clean up files  
 
-API
+API  
 POST /analyze - Analyze user financial profile  
 GET  /docs    - API documentation  
 
-License
+License  
 MIT
