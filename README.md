@@ -24,7 +24,7 @@ Environment variables (.env):
 Services:  
 planner_agent     - Orchestrates the workflow and combines final output  
 budgeting_agent   - Calculates basic affordability and budget guidance  
-program_agent     - Suggests assistance programs that may match the profile  
+program_agent     - Suggests assistance programs that may match the profile (RAG)
 geoscout_agent    - Suggests neighborhoods within budget and simple quality signals  
 mcp_kit           - Shared MCP adapter, tools, and clients used by agents  
   mcp_kit/servers/finance   - Budget/finance helper server  
