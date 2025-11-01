@@ -1,6 +1,6 @@
 The challenge:  
 "By the age of 30, only about 42 percent of millennials owned a home. That compares to 48 percent of Generation X and 51 percent of Baby Boomers."
-Many first-time buyers face high costs, debt, and a maze of programs. This project helps check a basic budget, find affordable neighborhoods, and surface relevant assistance programs.
+Many first-time buyers face high costs, debt, and a maze of programs. This project helps check a budget, find affordable neighborhoods, and surface relevant assistance programs.
 
 Quick Start:  
 1) Create a .env file. See "Environment variables (.env)" below.  
